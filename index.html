@@ -339,28 +339,38 @@
     padding-left: 12px;
   }
 
-  .prompt-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: 14px;
-    margin-bottom: 6px;
+  .vp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
   }
 
-  .prompt-hint {
-    font-weight: 400;
-    color: #444;
-    text-transform: none;
-    letter-spacing: 0;
+  .vp-row .vp {
+    flex: 1;
+    margin-top: 0;
   }
+
+  .btn-pencil {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 4px 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: color 0.2s, border-color 0.2s;
+    margin-top: 2px;
+  }
+
+  .btn-pencil:hover { color: var(--accent); border-color: #555; }
 
   .prompt-edit {
     width: 100%;
     background: #111;
-    border: 1px solid #333;
+    border: 1px solid #444;
     border-radius: 8px;
     color: var(--accent);
     font-family: var(--font);
@@ -368,13 +378,14 @@
     line-height: 1.6;
     padding: 10px 12px;
     resize: vertical;
-    min-height: 80px;
+    min-height: 90px;
     box-sizing: border-box;
     outline: none;
     transition: border-color 0.2s;
+    margin-top: 8px;
   }
 
-  .prompt-edit:focus { border-color: #555; }
+  .prompt-edit:focus { border-color: #666; }
 
   .accordion-body .btn-row { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
@@ -588,8 +599,11 @@ function renderStoryboardReview() {
       </div>
       <div class="accordion-body">
         <div class="vo">${escHtml(item.voiceover)}</div>
-        <label class="prompt-label">AI Prompt <span class="prompt-hint">(editable)</span></label>
-        <textarea class="prompt-edit">${escHtml(item.visual_prompt)}</textarea>
+        <div class="vp-row">
+          <div class="vp prompt-display">${escHtml(item.visual_prompt)}</div>
+          <button class="btn-pencil" title="Edit prompt">✎</button>
+        </div>
+        <textarea class="prompt-edit" style="display:none">${escHtml(item.visual_prompt)}</textarea>
         <div class="btn-row">
           <button class="btn-gen-line">${hasImage ? 'Regenerate Image' : 'Generate Image'}</button>
           ${hasImage ? `<a class="btn-dl secondary" href="/download/${item.line_number}" download>Download</a>` : ''}
@@ -607,13 +621,35 @@ function renderStoryboardReview() {
       acc.classList.toggle('open');
     });
 
+    acc.querySelector('.btn-pencil').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const display = acc.querySelector('.prompt-display');
+      const textarea = acc.querySelector('.prompt-edit');
+      const pencil = acc.querySelector('.btn-pencil');
+      const editing = textarea.style.display === 'none';
+      if (editing) {
+        textarea.value = display.textContent;
+        textarea.style.display = 'block';
+        display.style.display = 'none';
+        pencil.textContent = '✕';
+        pencil.title = 'Cancel edit';
+      } else {
+        display.textContent = textarea.value || item.visual_prompt;
+        textarea.style.display = 'none';
+        display.style.display = '';
+        pencil.textContent = '✎';
+        pencil.title = 'Edit prompt';
+      }
+    });
+
     acc.querySelector('.btn-gen-line').addEventListener('click', async (e) => {
       e.stopPropagation();
       const btn = acc.querySelector('.btn-gen-line');
       const statusEl = acc.querySelector('.gen-status-line');
       const imgEl = acc.querySelector('.line-img');
       const promptEl = acc.querySelector('.prompt-edit');
-      const activePrompt = promptEl.value.trim() || item.visual_prompt;
+      const displayEl = acc.querySelector('.prompt-display');
+      const activePrompt = (promptEl.style.display !== 'none' ? promptEl.value.trim() : displayEl.textContent.trim()) || item.visual_prompt;
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Generating…';
