@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Storyboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #181818;
+    --border: #2a2a2a;
+    --accent: #e0e0e0;
+    --muted: #666;
+    --text: #d4d4d4;
+    --success: #4caf50;
+    --error: #e05252;
+    --radius: 10px;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .step {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .step.visible { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .step h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1.3;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  input[type="text"],
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus { border-color: #555; }
+
+  .upload-zone {
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .upload-zone:hover { border-color: #555; background: #141414; }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-zone .upload-label {
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .upload-zone .upload-count {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    pointer-events: none;
+  }
+
+  .image-thumbs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .image-thumbs img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  button {
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  button.secondary:hover { border-color: #555; opacity: 1; }
+
+  .notice {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .notice.success { background: #0f2010; color: var(--success); border: 1px solid #1e3a1e; }
+  .notice.error   { background: #1f0e0e; color: var(--error);   border: 1px solid #3a1e1e; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card .line-num {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .card .vo {
+    font-size: 14px;
+    color: var(--accent);
+    line-height: 1.6;
+  }
+
+  .card .vp {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+  }
+
+  .card .generated-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-top: 6px;
+    display: none;
+  }
+
+  .card .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  #storyboard-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .current-card { border-color: #444; }
+
+  .accordion {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+  }
+
+  .accordion-header:hover { background: #1f1f1f; }
+
+  .accordion-header .line-num {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .accordion-header .vo-preview {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .accordion-chevron {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .accordion.open .accordion-chevron { transform: rotate(180deg); }
+
+  .accordion-body {
+    display: none;
+    padding: 0 18px 16px;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .accordion.open .accordion-body { display: flex; }
+
+  .accordion-body .vo {
+    font-size: 14px;
+    color: var(--accent);
+    line-height: 1.6;
+    padding-top: 14px;
+  }
+
+  .accordion-body .vp {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+  }
+
+  .accordion-body .btn-row { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  a.btn-dl {
+    display: inline-block;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.2s;
+  }
+
+  a.btn-dl:hover { border-color: #555; }
+
+  .accordion-body .line-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span style="font-size:18px;">◈</span>
+  <h1>Storyboard</h1>
+</header>
+
+<main>
+
+  <!-- STEP 1: Theme Input -->
+  <section class="step visible" id="step-1">
+    <span class="step-label">Step 1</span>
+    <h2>Theme Input</h2>
+
+    <div>
+      <label for="theme-name">Theme Name</label>
+      <input type="text" id="theme-name" placeholder="e.g. Dark Neon Futurism" />
+    </div>
+
+    <div>
+      <label>Reference Images <span style="color:var(--muted)">(up to 10)</span></label>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="image-input" accept="image/*" multiple />
+        <div class="upload-label">Click to select or drag images here</div>
+        <div class="upload-count" id="upload-count">0 selected</div>
+      </div>
+      <div class="image-thumbs" id="image-thumbs"></div>
+    </div>
+
+    <div>
+      <button id="btn-analyze" disabled>Analyze Theme</button>
+    </div>
+
+    <div id="analyze-status"></div>
+  </section>
+
+  <hr class="divider" id="div-1" style="display:none" />
+
+  <!-- STEP 3: Voiceover Input -->
+  <section class="step" id="step-3">
+    <span class="step-label">Step 3</span>
+    <h2>Voiceover Script</h2>
+
+    <div>
+      <label for="voiceover">Paste full voiceover script</label>
+      <textarea id="voiceover" rows="10" placeholder="Paste your voiceover here..."></textarea>
+    </div>
+
+    <div>
+      <button id="btn-storyboard">Generate Storyboard</button>
+    </div>
+
+    <div id="storyboard-status"></div>
+  </section>
+
+  <hr class="divider" id="div-3" style="display:none" />
+
+  <!-- STEP 4: Storyboard Review -->
+  <section class="step" id="step-4">
+    <span class="step-label">Step 4</span>
+    <h2>Storyboard</h2>
+    <div id="storyboard-success"></div>
+    <div id="storyboard-list"></div>
+  </section>
+
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let storyboardData = [];
+let currentLineIndex = 0;
+let generatedImages = {};
+
+// ── Image upload ─────────────────────────────────────────────────────────────
+const imageInput = $('image-input');
+let selectedFiles = [];
+
+imageInput.addEventListener('change', () => {
+  selectedFiles = Array.from(imageInput.files).slice(0, 10);
+  $('upload-count').textContent = `${selectedFiles.length} selected`;
+
+  const thumbs = $('image-thumbs');
+  thumbs.innerHTML = '';
+  selectedFiles.forEach(f => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    thumbs.appendChild(img);
+  });
+
+  $('btn-analyze').disabled = selectedFiles.length === 0 || !$('theme-name').value.trim();
+});
+
+$('theme-name').addEventListener('input', () => {
+  $('btn-analyze').disabled = selectedFiles.length === 0 || !$('theme-name').value.trim();
+});
+
+// ── Step 2: Analyze Theme ─────────────────────────────────────────────────────
+$('btn-analyze').addEventListener('click', async () => {
+  const themeName = $('theme-name').value.trim();
+  const status = $('analyze-status');
+
+  $('btn-analyze').disabled = true;
+  $('btn-analyze').innerHTML = '<span class="spinner"></span>Analyzing…';
+  status.innerHTML = '';
+
+  const formData = new FormData();
+  formData.append('theme_name', themeName);
+  selectedFiles.forEach(f => formData.append('images', f));
+
+  try {
+    const res = await fetch('/analyze', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Analysis failed');
+
+    status.innerHTML = `<div class="notice success">Theme analyzed successfully.</div>`;
+    show('div-1');
+    show('step-3');
+  } catch (e) {
+    status.innerHTML = `<div class="notice error">${e.message}</div>`;
+  } finally {
+    $('btn-analyze').textContent = 'Analyze Theme';
+    $('btn-analyze').disabled = false;
+  }
+});
+
+// ── Step 4: Generate Storyboard ───────────────────────────────────────────────
+$('btn-storyboard').addEventListener('click', async () => {
+  const voiceover = $('voiceover').value.trim();
+  const status = $('storyboard-status');
+
+  if (!voiceover) {
+    status.innerHTML = `<div class="notice error">Paste a voiceover script first.</div>`;
+    return;
+  }
+
+  $('btn-storyboard').disabled = true;
+  $('btn-storyboard').innerHTML = '<span class="spinner"></span>Generating…';
+  status.innerHTML = '';
+
+  try {
+    const res = await fetch('/storyboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ voiceover }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Generation failed');
+
+    storyboardData = data.storyboard;
+    generatedImages = {};
+
+    status.innerHTML = `<div class="notice success">Storyboard generated — ${storyboardData.length} lines.</div>`;
+    renderStoryboardReview();
+
+    show('div-3');
+    show('step-4');
+  } catch (e) {
+    status.innerHTML = `<div class="notice error">${e.message}</div>`;
+  } finally {
+    $('btn-storyboard').textContent = 'Generate Storyboard';
+    $('btn-storyboard').disabled = false;
+  }
+});
+
+// ── Step 4: Render accordion cards with inline image generation ───────────────
+function renderStoryboardReview() {
+  const list = $('storyboard-list');
+  list.innerHTML = '';
+  storyboardData.forEach(item => {
+    const lineKey = String(item.line_number);
+    const hasImage = lineKey in generatedImages;
+
+    const acc = document.createElement('div');
+    acc.className = 'accordion';
+    acc.dataset.line = lineKey;
+    acc.innerHTML = `
+      <div class="accordion-header">
+        <span class="line-num">Line ${item.line_number}</span>
+        <span class="vo-preview">${escHtml(item.voiceover)}</span>
+        <span class="accordion-chevron">▼</span>
+      </div>
+      <div class="accordion-body">
+        <div class="vo">${escHtml(item.voiceover)}</div>
+        <div class="vp">${escHtml(item.visual_prompt)}</div>
+        <div class="btn-row">
+          <button class="btn-gen-line">${hasImage ? 'Regenerate Image' : 'Generate Image'}</button>
+          ${hasImage ? `<a class="btn-dl secondary" href="/download/${item.line_number}" download>Download</a>` : ''}
+        </div>
+        <div class="gen-status-line"></div>
+        <img class="generated-img line-img" src="" alt="" style="${hasImage ? 'display:block' : 'display:none'}" />
+      </div>
+    `;
+
+    if (hasImage) {
+      acc.querySelector('.line-img').src = `/image/${item.line_number}`;
+    }
+
+    acc.querySelector('.accordion-header').addEventListener('click', () => {
+      acc.classList.toggle('open');
+    });
+
+    acc.querySelector('.btn-gen-line').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const btn = acc.querySelector('.btn-gen-line');
+      const statusEl = acc.querySelector('.gen-status-line');
+      const imgEl = acc.querySelector('.line-img');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Generating…';
+      statusEl.innerHTML = '';
+
+      try {
+        const res = await fetch('/generate-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line_number: item.line_number, visual_prompt: item.visual_prompt }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Image generation failed');
+
+        generatedImages[lineKey] = true;
+        imgEl.src = `/image/${item.line_number}?t=${Date.now()}`;
+        imgEl.style.display = 'block';
+        btn.textContent = 'Regenerate Image';
+        // Add/update download link
+        let dl = acc.querySelector('.btn-dl');
+        if (!dl) {
+          dl = document.createElement('a');
+          dl.className = 'btn-dl secondary';
+          dl.textContent = 'Download';
+          btn.after(dl);
+        }
+        dl.href = `/download/${item.line_number}`;
+        dl.setAttribute('download', '');
+      } catch (err) {
+        statusEl.innerHTML = `<div class="notice error">${err.message}</div>`;
+        btn.textContent = lineKey in generatedImages ? 'Regenerate Image' : 'Generate Image';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    list.appendChild(acc);
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function show(id) {
+  const el = $(id);
+  if (el) { el.style.display = ''; el.classList.add('visible'); }
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
