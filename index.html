@@ -339,6 +339,43 @@
     padding-left: 12px;
   }
 
+  .prompt-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+
+  .prompt-hint {
+    font-weight: 400;
+    color: #444;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .prompt-edit {
+    width: 100%;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 10px 12px;
+    resize: vertical;
+    min-height: 80px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .prompt-edit:focus { border-color: #555; }
+
   .accordion-body .btn-row { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
   a.btn-dl {
@@ -551,7 +588,8 @@ function renderStoryboardReview() {
       </div>
       <div class="accordion-body">
         <div class="vo">${escHtml(item.voiceover)}</div>
-        <div class="vp">${escHtml(item.visual_prompt)}</div>
+        <label class="prompt-label">AI Prompt <span class="prompt-hint">(editable)</span></label>
+        <textarea class="prompt-edit">${escHtml(item.visual_prompt)}</textarea>
         <div class="btn-row">
           <button class="btn-gen-line">${hasImage ? 'Regenerate Image' : 'Generate Image'}</button>
           ${hasImage ? `<a class="btn-dl secondary" href="/download/${item.line_number}" download>Download</a>` : ''}
@@ -574,6 +612,8 @@ function renderStoryboardReview() {
       const btn = acc.querySelector('.btn-gen-line');
       const statusEl = acc.querySelector('.gen-status-line');
       const imgEl = acc.querySelector('.line-img');
+      const promptEl = acc.querySelector('.prompt-edit');
+      const activePrompt = promptEl.value.trim() || item.visual_prompt;
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Generating…';
@@ -583,7 +623,7 @@ function renderStoryboardReview() {
         const res = await fetch('/generate-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ line_number: item.line_number, visual_prompt: item.visual_prompt }),
+          body: JSON.stringify({ line_number: item.line_number, visual_prompt: activePrompt }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Image generation failed');
