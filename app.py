@@ -286,28 +286,55 @@ def generate_image():
     if not visual_prompt:
         return jsonify({"error": "Visual prompt required"}), 400
 
-    # Build multimodal contents: reference images + prompt text
-    # Gemini image generation model sees the references directly — no lossy text middleman
-    parts = []
-    for img_data in state["theme_images"]:
-        url = img_data["image_url"]["url"]
-        header, b64data = url.split(",", 1)
-        mime = header.split(":")[1].split(";")[0]
-        parts.append(genai_types.Part(
-            inline_data=genai_types.Blob(mime_type=mime, data=base64.b64decode(b64data))
-        ))
+    # Step 1: GPT-4o vision → ultra-detailed style fingerprint prompt
+    # GPT-4o sees all reference images and produces an Imagen-ready prompt that encodes
+    # exact character appearance, colors, lighting, composition, and style keywords.
+    style_analysis = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert at writing image generation prompts that faithfully replicate a visual style.\n"
+                    "You will be shown reference images that define a visual theme.\n"
+                    "Your output must be a single image generation prompt (no headers, no explanation) that:\n"
+                    "1. Describes the EXACT presenter/host character — face, hair, skin tone, expression, clothing, accessories\n"
+                    "2. Describes the EXACT set/background — color, texture, props, lighting setup\n"
+                    "3. Describes the EXACT color palette — dominant hues, contrast level, color temperature\n"
+                    "4. Describes the EXACT visual style — photorealistic/illustrated/motion-graphic/cinematic, etc.\n"
+                    "5. Describes the EXACT camera framing — wide shot, medium shot, close-up, angle\n"
+                    "6. Appends the specific scene action at the end\n"
+                    "Be hyper-specific. Never use vague words. Write as if describing to someone who cannot see the references.\n\n"
+                    f"--- VISUAL THEME SYSTEM ---\n{state['theme_breakdown']}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "These are the reference images. Extract every visual detail and write a single "
+                            "image generation prompt that would make Imagen reproduce this exact style.\n\n"
+                            f"Scene to depict: {visual_prompt}"
+                        ),
+                    },
+                    *state["theme_images"],
+                ],
+            },
+        ],
+        max_tokens=1024,
+    )
+    imagen_prompt = style_analysis.choices[0].message.content.strip()
 
-    parts.append(genai_types.Part(text=(
-        f"{IMAGE_GENERATION_PROMPT}\n\n"
-        f"--- VISUAL THEME SYSTEM ---\n{state['theme_breakdown']}\n\n"
-        "The images above are the reference toolkit. Generate a new image that is "
-        "visually indistinguishable from them in style, color palette, lighting, "
-        "character design, and composition. Do not deviate from the established visual language.\n\n"
-        f"Scene to generate: {visual_prompt}"
-    )))
-
-    contents = [genai_types.Content(parts=parts, role="user")]
-    img_b64 = _run_gemini_image_gen(contents)
+    # Step 2: Imagen 4 generates from the style fingerprint prompt
+    result = imagen_client.models.generate_images(
+        model="imagen-4.0-generate-001",
+        prompt=imagen_prompt,
+        config=genai_types.GenerateImagesConfig(number_of_images=1),
+    )
+    img_bytes = result.generated_images[0].image.image_bytes
+    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
 
     img_path = os.path.join(IMAGES_DIR, f"line_{line_number}.png")
     with open(img_path, "wb") as f:
