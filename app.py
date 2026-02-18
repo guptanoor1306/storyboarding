@@ -157,6 +157,7 @@ _default_state = {
     "theme_name": None,
     "theme_images": [],
     "theme_breakdown": None,
+    "style_fingerprint": None,
     "voiceover_script": None,
     "storyboard_data": None,
     "generated_images": {},
@@ -216,6 +217,40 @@ def analyze():
     }]
     response = openai_client.chat.completions.create(model="gpt-4o", messages=messages)
     state["theme_breakdown"] = response.choices[0].message.content
+
+    # Compute style fingerprint once — an Imagen-ready prompt string capturing
+    # exact character, set, color palette, lighting, and style keywords.
+    fp_response = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert prompt engineer for image generation models.\n"
+                    "Study the reference images carefully and write ONE detailed image generation prompt "
+                    "that fully describes the visual style so precisely that any scene can be generated in this exact look.\n\n"
+                    "Your prompt MUST include:\n"
+                    "- Presenter/host: exact physical description (gender, age range, ethnicity, face shape, hair color/style, eye color, clothing, accessories)\n"
+                    "- Set/background: exact description (colors, textures, props, furniture, depth)\n"
+                    "- Lighting: exact setup (direction, intensity, color temperature, shadows)\n"
+                    "- Color palette: list 4-6 dominant hex-approximate colors (e.g. deep navy #1a2a4a, warm amber #d4882a)\n"
+                    "- Visual style: photorealistic/cinematic/broadcast TV/motion-graphic/illustrated — be exact\n"
+                    "- Camera: focal length feel, shot type (medium shot, MCU, wide), angle\n"
+                    "- Post-processing look: color grade, contrast, saturation level\n\n"
+                    "Output ONLY the prompt string. No labels. No headers. No explanation."
+                ),
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Analyze these reference images and write the style fingerprint prompt:"},
+                    *image_content,
+                ],
+            },
+        ],
+        max_tokens=800,
+    )
+    state["style_fingerprint"] = fp_response.choices[0].message.content.strip()
     _save_state()
     return jsonify({"success": True})
 
@@ -286,48 +321,15 @@ def generate_image():
     if not visual_prompt:
         return jsonify({"error": "Visual prompt required"}), 400
 
-    # Step 1: GPT-4o vision → ultra-detailed style fingerprint prompt
-    # GPT-4o sees all reference images and produces an Imagen-ready prompt that encodes
-    # exact character appearance, colors, lighting, composition, and style keywords.
-    style_analysis = openai_client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an expert at writing image generation prompts that faithfully replicate a visual style.\n"
-                    "You will be shown reference images that define a visual theme.\n"
-                    "Your output must be a single image generation prompt (no headers, no explanation) that:\n"
-                    "1. Describes the EXACT presenter/host character — face, hair, skin tone, expression, clothing, accessories\n"
-                    "2. Describes the EXACT set/background — color, texture, props, lighting setup\n"
-                    "3. Describes the EXACT color palette — dominant hues, contrast level, color temperature\n"
-                    "4. Describes the EXACT visual style — photorealistic/illustrated/motion-graphic/cinematic, etc.\n"
-                    "5. Describes the EXACT camera framing — wide shot, medium shot, close-up, angle\n"
-                    "6. Appends the specific scene action at the end\n"
-                    "Be hyper-specific. Never use vague words. Write as if describing to someone who cannot see the references.\n\n"
-                    f"--- VISUAL THEME SYSTEM ---\n{state['theme_breakdown']}"
-                ),
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            "These are the reference images. Extract every visual detail and write a single "
-                            "image generation prompt that would make Imagen reproduce this exact style.\n\n"
-                            f"Scene to depict: {visual_prompt}"
-                        ),
-                    },
-                    *state["theme_images"],
-                ],
-            },
-        ],
-        max_tokens=1024,
-    )
-    imagen_prompt = style_analysis.choices[0].message.content.strip()
+    # Build the final Imagen prompt:
+    # style_fingerprint (computed once at theme analysis, fully describes the visual look)
+    # + the specific scene from the storyboard visual_prompt
+    fingerprint = state.get("style_fingerprint") or ""
+    imagen_prompt = (
+        f"{fingerprint}\n\n"
+        f"Scene: {visual_prompt}"
+    ).strip()
 
-    # Step 2: Imagen 4 generates from the style fingerprint prompt
     result = imagen_client.models.generate_images(
         model="imagen-4.0-generate-001",
         prompt=imagen_prompt,
