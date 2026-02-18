@@ -128,7 +128,8 @@ def _run_gemini_image_gen(contents):
         "gemini-2.0-flash-exp-image-generation",
         "gemini-2.5-flash-image",
     ]
-    modality_combos = [["IMAGE"], ["TEXT", "IMAGE"]]
+    modality_combos = [["TEXT", "IMAGE"], ["IMAGE"]]
+    errors = []
 
     for model in models_to_try:
         for modalities in modality_combos:
@@ -142,11 +143,14 @@ def _run_gemini_image_gen(contents):
                 )
                 for part in result.candidates[0].content.parts:
                     if part.inline_data:
+                        print(f"[image-gen] success: model={model} modalities={modalities}", flush=True)
                         return base64.b64encode(part.inline_data.data).decode("utf-8")
-            except Exception:
+                errors.append(f"{model}/{modalities}: responded but no image part")
+            except Exception as e:
+                errors.append(f"{model}/{modalities}: {e}")
                 continue
 
-    raise Exception("No Gemini image model succeeded. Check your Google API key permissions.")
+    raise Exception("No Gemini image model succeeded. Attempts: " + " | ".join(errors))
 
 STORAGE_DIR = os.environ.get("STORAGE_PATH", os.path.dirname(os.path.abspath(__file__)))
 IMAGES_DIR  = os.path.join(STORAGE_DIR, "images")
@@ -321,22 +325,27 @@ def generate_image():
     if not visual_prompt:
         return jsonify({"error": "Visual prompt required"}), 400
 
-    # Build the final Imagen prompt:
-    # style_fingerprint (computed once at theme analysis, fully describes the visual look)
-    # + the specific scene from the storyboard visual_prompt
+    # Pass reference images directly to Gemini image generation.
+    # Gemini sees the actual pixels — not a text description of them.
+    # The style fingerprint is appended as the text anchor to lock character + palette.
     fingerprint = state.get("style_fingerprint") or ""
-    imagen_prompt = (
-        f"{fingerprint}\n\n"
-        f"Scene: {visual_prompt}"
-    ).strip()
-
-    result = imagen_client.models.generate_images(
-        model="imagen-4.0-generate-001",
-        prompt=imagen_prompt,
-        config=genai_types.GenerateImagesConfig(number_of_images=1),
-    )
-    img_bytes = result.generated_images[0].image.image_bytes
-    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+    parts = []
+    for img_data in state["theme_images"]:
+        url = img_data["image_url"]["url"]
+        header, b64data = url.split(",", 1)
+        mime = header.split(":")[1].split(";")[0]
+        parts.append(genai_types.Part(
+            inline_data=genai_types.Blob(mime_type=mime, data=base64.b64decode(b64data))
+        ))
+    parts.append(genai_types.Part(text=(
+        "These are the reference images that define the visual style. "
+        "Generate a new image that is visually faithful to this exact style, "
+        "replicating the presenter's appearance, set design, color palette, lighting, and composition.\n\n"
+        f"Style anchor:\n{fingerprint}\n\n"
+        f"Scene to generate: {visual_prompt}"
+    )))
+    contents = [genai_types.Content(parts=parts, role="user")]
+    img_b64 = _run_gemini_image_gen(contents)
 
     img_path = os.path.join(IMAGES_DIR, f"line_{line_number}.png")
     with open(img_path, "wb") as f:
