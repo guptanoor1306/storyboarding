@@ -269,6 +269,15 @@ def storyboard():
     if not state["theme_breakdown"]:
         return jsonify({"error": "Analyze theme first"}), 400
 
+    # GPT-4o context window: 128K tokens input, 16K tokens output.
+    # Reference images consume ~1000-2000 tokens each, theme breakdown ~3K.
+    # Each storyboard line in output is ~100-150 tokens.
+    # At 16K output tokens, ~100-130 lines max before truncation.
+    # Rough guard: warn if script looks very large (>500 lines).
+    line_count = len([l for l in voiceover.splitlines() if l.strip()])
+    if line_count > 500:
+        return jsonify({"error": f"Script has {line_count} lines. Keep under 500 lines to avoid output truncation."}), 400
+
     state["voiceover_script"] = voiceover
     system_content = (
         f"{STORYBOARD_PROMPT}\n\n"
@@ -292,6 +301,7 @@ def storyboard():
         },
         *state["theme_images"],
     ]
+    # Attempt 1: JSON mode (fastest, cleanest)
     response = openai_client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -299,13 +309,31 @@ def storyboard():
             {"role": "user", "content": user_content},
         ],
         response_format={"type": "json_object"},
-        max_tokens=4096,
+        max_tokens=16000,
     )
     choice = response.choices[0]
     content = choice.message.content
+
+    # JSON mode + vision can trigger a refusal stored outside content
     if not content:
-        reason = choice.finish_reason or "unknown"
-        raise ValueError(f"Model returned no content (finish_reason: {reason}). Try shortening the voiceover script.")
+        refusal = getattr(choice.message, "refusal", None)
+        print(f"[storyboard] JSON mode failed — refusal={refusal} finish={choice.finish_reason}", flush=True)
+        # Attempt 2: plain text mode, parse JSON manually
+        plain_system = system_content + "\n\nIMPORTANT: Return ONLY a raw JSON object with no markdown fences."
+        response2 = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": plain_system},
+                {"role": "user", "content": user_content},
+            ],
+            max_tokens=16000,
+        )
+        content = response2.choices[0].message.content
+        if not content:
+            raise ValueError("Model refused to generate the storyboard. Try rephrasing or shortening the voiceover script.")
+        # Strip markdown fences if present
+        content = content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+
     raw = json.loads(content)
     result = raw if isinstance(raw, list) else raw.get("storyboard", list(raw.values())[0])
     state["storyboard_data"] = result
