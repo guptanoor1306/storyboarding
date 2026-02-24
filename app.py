@@ -2,6 +2,7 @@ import os
 import json
 import base64
 from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request, jsonify, send_from_directory
 from openai import OpenAI
 from google import genai as google_genai
@@ -212,49 +213,59 @@ def analyze():
     state["theme_name"] = theme_name
     state["theme_images"] = image_content
 
-    messages = [{
-        "role": "user",
-        "content": [
-            {"type": "text", "text": f"{THEME_BREAKDOWN_PROMPT}\n\nTheme: {theme_name}"},
-            *image_content,
-        ],
-    }]
-    response = openai_client.chat.completions.create(model="gpt-4o", messages=messages)
-    state["theme_breakdown"] = response.choices[0].message.content
-
-    # Compute style fingerprint once — an Imagen-ready prompt string capturing
-    # exact character, set, color palette, lighting, and style keywords.
-    fp_response = openai_client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an expert prompt engineer for image generation models.\n"
-                    "Study the reference images carefully and write ONE detailed image generation prompt "
-                    "that fully describes the visual style so precisely that any scene can be generated in this exact look.\n\n"
-                    "Your prompt MUST include:\n"
-                    "- Presenter/host: exact physical description (gender, age range, ethnicity, face shape, hair color/style, eye color, clothing, accessories)\n"
-                    "- Set/background: exact description (colors, textures, props, furniture, depth)\n"
-                    "- Lighting: exact setup (direction, intensity, color temperature, shadows)\n"
-                    "- Color palette: list 4-6 dominant hex-approximate colors (e.g. deep navy #1a2a4a, warm amber #d4882a)\n"
-                    "- Visual style: photorealistic/cinematic/broadcast TV/motion-graphic/illustrated — be exact\n"
-                    "- Camera: focal length feel, shot type (medium shot, MCU, wide), angle\n"
-                    "- Post-processing look: color grade, contrast, saturation level\n\n"
-                    "Output ONLY the prompt string. No labels. No headers. No explanation."
-                ),
-            },
-            {
+    def call_breakdown():
+        return openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "Analyze these reference images and write the style fingerprint prompt:"},
+                    {"type": "text", "text": f"{THEME_BREAKDOWN_PROMPT}\n\nTheme: {theme_name}"},
                     *image_content,
                 ],
-            },
-        ],
-        max_tokens=800,
-    )
-    state["style_fingerprint"] = fp_response.choices[0].message.content.strip()
+            }],
+        )
+
+    def call_fingerprint():
+        return openai_client.chat.completions.create(
+            model="gpt-4o",
+            max_tokens=800,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an expert prompt engineer for image generation models.\n"
+                        "Study the reference images carefully and write ONE detailed image generation prompt "
+                        "that fully describes the visual style so precisely that any scene can be generated in this exact look.\n\n"
+                        "Your prompt MUST include:\n"
+                        "- On-screen talent (if any): exact physical description (appearance, clothing, accessories)\n"
+                        "- Set/background: exact description (colors, textures, props, furniture, depth)\n"
+                        "- Lighting: exact setup (direction, intensity, color temperature, shadows)\n"
+                        "- Color palette: list 4-6 dominant hex-approximate colors (e.g. deep navy #1a2a4a)\n"
+                        "- Visual style: photorealistic/cinematic/broadcast TV/motion-graphic/illustrated — be exact\n"
+                        "- Camera: focal length feel, shot type (medium shot, MCU, wide), angle\n"
+                        "- Post-processing look: color grade, contrast, saturation level\n\n"
+                        "Output ONLY the prompt string. No labels. No headers. No explanation."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Analyze these reference images and write the style fingerprint prompt:"},
+                        *image_content,
+                    ],
+                },
+            ],
+        )
+
+    # Run both GPT-4o calls in parallel — cuts analyze time roughly in half
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        f_breakdown = executor.submit(call_breakdown)
+        f_fingerprint = executor.submit(call_fingerprint)
+        breakdown_resp = f_breakdown.result()
+        fingerprint_resp = f_fingerprint.result()
+
+    state["theme_breakdown"] = breakdown_resp.choices[0].message.content
+    state["style_fingerprint"] = fingerprint_resp.choices[0].message.content.strip()
     _save_state()
     return jsonify({"success": True})
 
