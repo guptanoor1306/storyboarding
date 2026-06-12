@@ -434,11 +434,11 @@
     </div>
 
     <div>
-      <label>Reference Images <span style="color:var(--muted)">(up to 10)</span></label>
+      <label>Reference Images <span style="color:var(--muted)">(10–20)</span></label>
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="image-input" accept="image/*" multiple />
         <div class="upload-label">Click to select or drag images here</div>
-        <div class="upload-count" id="upload-count">0 selected</div>
+        <div class="upload-count" id="upload-count">0 selected (min 10)</div>
       </div>
       <div class="image-thumbs" id="image-thumbs"></div>
     </div>
@@ -493,8 +493,8 @@ const imageInput = $('image-input');
 let selectedFiles = [];
 
 imageInput.addEventListener('change', () => {
-  selectedFiles = Array.from(imageInput.files).slice(0, 10);
-  $('upload-count').textContent = `${selectedFiles.length} selected`;
+  selectedFiles = Array.from(imageInput.files).slice(0, 20);
+  $('upload-count').textContent = `${selectedFiles.length} selected (min 10, max 20)`;
 
   const thumbs = $('image-thumbs');
   thumbs.innerHTML = '';
@@ -504,11 +504,11 @@ imageInput.addEventListener('change', () => {
     thumbs.appendChild(img);
   });
 
-  $('btn-analyze').disabled = selectedFiles.length === 0 || !$('theme-name').value.trim();
+  $('btn-analyze').disabled = selectedFiles.length < 10 || selectedFiles.length > 20 || !$('theme-name').value.trim();
 });
 
 $('theme-name').addEventListener('input', () => {
-  $('btn-analyze').disabled = selectedFiles.length === 0 || !$('theme-name').value.trim();
+  $('btn-analyze').disabled = selectedFiles.length < 10 || selectedFiles.length > 20 || !$('theme-name').value.trim();
 });
 
 // ── Step 2: Analyze Theme ─────────────────────────────────────────────────────

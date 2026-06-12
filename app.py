@@ -101,7 +101,25 @@ End cleanly when the voiceover ends.
 Return your output as a JSON object with a key "storyboard" containing an array. Each element must have:
 - "line_number": integer
 - "voiceover": the exact voiceover line unchanged
-- "visual_prompt": the storyboard instruction paragraph for that line"""
+- "visual_prompt": the storyboard instruction paragraph for that line
+
+TECHNICAL UI RULES (infer from voiceover — no separate visual script is provided):
+* Input is voiceover only. You must decide what appears on screen from each line's meaning.
+* When a line explains product, finance, trading, settlement, platform features, or mechanics, write visual_prompt as instructional UI direction — not generic B-roll.
+* Infer the correct visual treatment: icons, diagrams, product UI panels, labels, comparisons, state changes, and motion intent implied by what is being said.
+* When the voiceover introduces a concept, show the representing element. When it contrasts options, show split/highlight/full-screen focus. When something is unsupported or expired, grey out or remove from frame. When something converts or delivers, show A-to-B transformation.
+* For comparisons (two exchanges, two settlement types, before/after), specify layout and difference visually.
+* For feature explanations (basket orders, order slicing, terminal layouts), infer multi-part UI compositions from the voiceover and reference theme.
+* Preserve continuity across related lines: reuse the same metaphor objects and UI components throughout a sequence.
+* Name exact on-screen text, widget names, and data fields when the voiceover implies them."""
+
+TECHNICAL_UI_RULES = """When the visual_prompt describes a technical or product explanation:
+* Follow the visual_prompt's UI direction precisely — it was inferred from the voiceover for instructional accuracy.
+* Match the reference toolkit's UI language, component shapes, typography, and icon style.
+* Render the specific UI state specified (selected tab, highlighted row, disabled/greyed module, popup open, side-by-side panels).
+* Show metaphor objects and transformations as directed (contract paper, cash, delivery, folders, bridges, sliced order chunks).
+* Include legible on-screen labels for key terms when the prompt implies them.
+* Do not simplify into generic stock finance imagery."""
 
 IMAGE_GENERATION_PROMPT = """Your task is to analyze the provided set of reference images, which act as a visual toolkit for a specific creator or channel. Your goal is to reverse-engineer their unique visual style and then apply it to create a new image.
 First, carefully study the reference images to identify the defining characteristics of their aesthetic. Pay close attention to:
@@ -112,6 +130,9 @@ First, carefully study the reference images to identify the defining characteris
 * Character/Object Design: Are figures realistic, silhouetted, cartoonish, or symbolic? How are objects rendered?
 * Typography & Branding: Note the style of any text elements, labels, or logos present.
 Once you have a solid understanding of this visual language, generate a single, detailed image generation prompt based on the user's visual prompt below. The final image must perfectly replicate the style, mood, and techniques found in the reference toolkit, making it look like an authentic piece from the same series.
+
+If the scene is technical or product-focused, the prompt must specify exact UI elements, states, labels, icons, and visual transformations — not generic illustrations.
+
 Return ONLY the image generation prompt as plain text. No explanation. No commentary. No extra text."""
 
 app = Flask(__name__)
@@ -206,8 +227,8 @@ def analyze():
 
     if not theme_name:
         return jsonify({"error": "Theme name required"}), 400
-    if len(images) == 0 or len(images) > 10:
-        return jsonify({"error": f"Upload between 1 and 10 images (got {len(images)})"}), 400
+    if len(images) < 10 or len(images) > 20:
+        return jsonify({"error": f"Upload between 10 and 20 images (got {len(images)})"}), 400
 
     image_content = encode_uploaded_files(images)
     state["theme_name"] = theme_name
@@ -243,7 +264,9 @@ def analyze():
                         "- Color palette: list 4-6 dominant hex-approximate colors (e.g. deep navy #1a2a4a)\n"
                         "- Visual style: photorealistic/cinematic/broadcast TV/motion-graphic/illustrated — be exact\n"
                         "- Camera: focal length feel, shot type (medium shot, MCU, wide), angle\n"
-                        "- Post-processing look: color grade, contrast, saturation level\n\n"
+                        "- Post-processing look: color grade, contrast, saturation level\n"
+                        "- Technical UI patterns: how product UI, icons, metaphors, and state changes are rendered\n\n"
+                        f"{TECHNICAL_UI_RULES}\n\n"
                         "Output ONLY the prompt string. No labels. No headers. No explanation."
                     ),
                 },
@@ -300,13 +323,16 @@ def storyboard():
             "type": "text",
             "text": (
                 "These are the reference images that define this visual theme.\n\n"
+                "The input below is VOICEOVER ONLY. No separate visual direction is provided.\n"
+                "For each line, infer what must appear on screen from the line's meaning and the theme grammar.\n\n"
                 "CRITICAL INSTRUCTIONS for every visual_prompt you write:\n"
                 "1. If a presenter, host, or on-screen character appears in these references, "
-                "describe that EXACT person — their appearance, clothing, hair, skin tone, expression — "
-                "in every frame they appear. Never replace them with a generic person.\n"
+                "describe that EXACT person in every frame they appear. Never replace them with a generic person.\n"
                 "2. Replicate the exact background, set design, color grading, and lighting visible in these images.\n"
                 "3. Replicate the exact graphic style, typography treatment, and motion language.\n"
-                "4. Every visual_prompt must read as a specific shot direction, not a generic description.\n\n"
+                "4. Every visual_prompt must read as a specific shot direction, not a generic description.\n"
+                "5. When the voiceover explains technical, product, or platform concepts, infer and write full "
+                "instructional UI direction: widgets, icons, labels, states, comparisons, and transformations.\n\n"
                 f"Voiceover Script:\n{voiceover}"
             )
         },
@@ -379,8 +405,9 @@ def generate_image():
     parts.append(genai_types.Part(text=(
         "These are the reference images that define the visual style. "
         "Generate a new image that is visually faithful to this exact style, "
-        "replicating the presenter's appearance, set design, color palette, lighting, and composition.\n\n"
+        "replicating set design, color palette, lighting, and composition.\n\n"
         f"Style anchor:\n{fingerprint}\n\n"
+        f"{TECHNICAL_UI_RULES}\n\n"
         f"Scene to generate: {visual_prompt}"
     )))
     contents = [genai_types.Content(parts=parts, role="user")]
