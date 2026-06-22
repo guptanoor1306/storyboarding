@@ -406,6 +406,45 @@
 
   a.btn-dl:hover { border-color: #555; }
 
+  .context-toggle-row { margin-top: 4px; }
+
+  .voiceover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .voiceover-header label { margin-bottom: 0; }
+
+  .context-panel {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .context-panel .upload-zone { padding: 20px; }
+
+  .context-summary {
+    font-size: 13px;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+
+  .context-summary .muted {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .context-active { border-color: #555; color: var(--accent); }
+
   .accordion-body .line-img {
     width: 100%;
     border-radius: 8px;
@@ -457,9 +496,23 @@
     <span class="step-label">Step 3</span>
     <h2>Voiceover Script</h2>
 
-    <div>
+    <div class="voiceover-header">
       <label for="voiceover">Paste full voiceover script</label>
-      <textarea id="voiceover" rows="10" placeholder="Paste your voiceover here..."></textarea>
+      <button type="button" id="btn-context-toggle" class="secondary">Enable context</button>
+    </div>
+    <textarea id="voiceover" rows="10" placeholder="Paste your voiceover here..."></textarea>
+
+    <div id="context-panel" class="context-panel" style="display:none">
+      <div id="context-summary" class="context-summary">Loading context status…</div>
+      <div class="upload-zone context-upload">
+        <input type="file" id="pdf-input" accept="application/pdf,.pdf" multiple />
+        <div class="upload-label">Upload additional PDFs</div>
+        <div class="upload-count" id="pdf-count">0 PDFs selected</div>
+      </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button type="button" id="btn-index-context">Index new PDFs</button>
+      </div>
+      <div id="context-status"></div>
     </div>
 
     <div>
@@ -487,6 +540,91 @@ const $ = id => document.getElementById(id);
 let storyboardData = [];
 let currentLineIndex = 0;
 let generatedImages = {};
+let contextModeEnabled = false;
+let selectedPdfs = [];
+let contextStatus = { indexed_pdf_count: 0, total_chunks: 0, ready: false, files: [] };
+
+function renderContextSummary() {
+  const el = $('context-summary');
+  const n = contextStatus.indexed_pdf_count || 0;
+  if (n > 0) {
+    el.innerHTML = `${n} PDF${n === 1 ? '' : 's'} already indexed — add more if needed<div class="muted">${contextStatus.total_chunks} chunks in store</div>`;
+  } else {
+    el.innerHTML = `No PDFs indexed yet<div class="muted">Upload Varsity PDFs below, then click Index new PDFs</div>`;
+  }
+}
+
+async function loadContextStatus() {
+  try {
+    const res = await fetch('/context/status');
+    const data = await res.json();
+    if (!res.ok) return;
+    contextStatus = data;
+    renderContextSummary();
+  } catch (_) {}
+}
+
+$('btn-context-toggle').addEventListener('click', () => {
+  contextModeEnabled = !contextModeEnabled;
+  const panel = $('context-panel');
+  const btn = $('btn-context-toggle');
+  panel.style.display = contextModeEnabled ? 'flex' : 'none';
+  btn.classList.toggle('context-active', contextModeEnabled);
+  btn.textContent = contextModeEnabled ? 'Context enabled' : 'Enable context';
+  if (contextModeEnabled) loadContextStatus();
+});
+
+const pdfInput = $('pdf-input');
+pdfInput.addEventListener('change', () => {
+  selectedPdfs = Array.from(pdfInput.files);
+  $('pdf-count').textContent = `${selectedPdfs.length} PDFs selected`;
+});
+
+$('btn-index-context').addEventListener('click', async () => {
+  const statusEl = $('context-status');
+  if (selectedPdfs.length === 0) {
+    statusEl.innerHTML = `<div class="notice error">Select at least one PDF.</div>`;
+    return;
+  }
+
+  const stages = [
+    'Extracting PDF text…',
+    'Creating chunks…',
+    'Creating embeddings…',
+  ];
+  let stageIdx = 0;
+  statusEl.innerHTML = `<div class="notice success">${stages[0]}</div>`;
+  const timer = setInterval(() => {
+    stageIdx = Math.min(stageIdx + 1, stages.length - 1);
+    statusEl.innerHTML = `<div class="notice success">${stages[stageIdx]}</div>`;
+  }, 2500);
+
+  $('btn-index-context').disabled = true;
+  const fd = new FormData();
+  selectedPdfs.forEach(f => fd.append('pdfs', f));
+
+  try {
+    const res = await fetch('/context/index', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Indexing failed');
+
+    clearInterval(timer);
+    let msg = `Context ready — ${data.already_indexed} PDF(s) already indexed, ${data.newly_indexed} new PDF(s) indexed`;
+    if (data.new_chunks) msg += ` (${data.new_chunks} new chunks)`;
+    if (data.errors && data.errors.length) {
+      msg += `. Skipped: ${data.errors.join('; ')}`;
+    }
+    statusEl.innerHTML = `<div class="notice success">${msg}</div>`;
+    loadContextStatus();
+  } catch (e) {
+    clearInterval(timer);
+    statusEl.innerHTML = `<div class="notice error">${e.message}</div>`;
+  } finally {
+    $('btn-index-context').disabled = false;
+  }
+});
+
+loadContextStatus();
 
 // ── Image upload ─────────────────────────────────────────────────────────────
 const imageInput = $('image-input');
@@ -533,6 +671,7 @@ $('btn-analyze').addEventListener('click', async () => {
     status.innerHTML = `<div class="notice success">Theme analyzed successfully.</div>`;
     show('div-1');
     show('step-3');
+    loadContextStatus();
   } catch (e) {
     status.innerHTML = `<div class="notice error">${e.message}</div>`;
   } finally {
@@ -559,7 +698,7 @@ $('btn-storyboard').addEventListener('click', async () => {
     const res = await fetch('/storyboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ voiceover }),
+      body: JSON.stringify({ voiceover, use_context: contextModeEnabled }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');

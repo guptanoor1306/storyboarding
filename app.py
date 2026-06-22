@@ -8,6 +8,7 @@ from openai import OpenAI
 from google import genai as google_genai
 from google.genai import types as genai_types
 from dotenv import load_dotenv
+import rag_context
 
 load_dotenv(override=True)
 
@@ -147,8 +148,9 @@ imagen_client = google_genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
 def _run_gemini_image_gen(contents):
     """Try Gemini image generation models in order, return base64 PNG string."""
     models_to_try = [
-        "gemini-2.0-flash-exp-image-generation",
         "gemini-2.5-flash-image",
+        "gemini-3.1-flash-image",
+        "gemini-3-pro-image",
     ]
     modality_combos = [["TEXT", "IMAGE"], ["IMAGE"]]
     errors = []
@@ -163,7 +165,16 @@ def _run_gemini_image_gen(contents):
                         response_modalities=modalities,
                     ),
                 )
-                for part in result.candidates[0].content.parts:
+                candidates = result.candidates or []
+                if not candidates:
+                    errors.append(f"{model}/{modalities}: no candidates returned")
+                    continue
+                content = candidates[0].content
+                if content is None:
+                    reason = getattr(candidates[0], "finish_reason", "unknown")
+                    errors.append(f"{model}/{modalities}: empty content (finish_reason={reason})")
+                    continue
+                for part in (content.parts or []):
                     if part.inline_data:
                         print(f"[image-gen] success: model={model} modalities={modalities}", flush=True)
                         return base64.b64encode(part.inline_data.data).decode("utf-8")
@@ -293,15 +304,38 @@ def analyze():
     return jsonify({"success": True})
 
 
+@app.route("/context/status", methods=["GET"])
+def context_status():
+    try:
+        return jsonify(rag_context.get_status(STORAGE_DIR))
+    except Exception as e:
+        return jsonify({"error": str(e), "ready": False, "indexed_pdf_count": 0}), 500
+
+
+@app.route("/context/index", methods=["POST"])
+def context_index():
+    pdfs = request.files.getlist("pdfs")
+    if not pdfs:
+        return jsonify({"error": "Upload at least one PDF"}), 400
+    try:
+        result = rag_context.index_pdfs(openai_client, STORAGE_DIR, pdfs)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Indexing failed: {e}"}), 500
+
+
 @app.route("/storyboard", methods=["POST"])
 def storyboard():
     body = request.get_json()
     voiceover = (body or {}).get("voiceover", "").strip()
+    use_context = bool((body or {}).get("use_context"))
 
     if not voiceover:
         return jsonify({"error": "Voiceover script required"}), 400
     if not state["theme_breakdown"]:
         return jsonify({"error": "Analyze theme first"}), 400
+    if use_context and not rag_context.has_indexed_context(STORAGE_DIR):
+        return jsonify({"error": "Context mode enabled but no indexed PDFs found. Upload Varsity PDFs and click Index context first."}), 400
 
     # GPT-4o context window: 128K tokens input, 16K tokens output.
     # Reference images consume ~1000-2000 tokens each, theme breakdown ~3K.
@@ -318,6 +352,16 @@ def storyboard():
         f"--- VISUAL THEME SYSTEM (apply this grammar to every frame) ---\n"
         f"{state['theme_breakdown']}"
     )
+
+    if use_context:
+        try:
+            chunks = rag_context.retrieve_for_voiceover(openai_client, STORAGE_DIR, voiceover)
+            context_block = rag_context.format_context_block(chunks)
+            if context_block:
+                system_content += f"\n\n---\n{context_block}"
+        except Exception as e:
+            return jsonify({"error": f"Context retrieval failed: {e}"}), 500
+
     user_content = [
         {
             "type": "text",
