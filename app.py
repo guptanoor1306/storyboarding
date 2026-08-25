@@ -187,8 +187,10 @@ def _run_gemini_image_gen(contents):
 
 STORAGE_DIR = os.environ.get("STORAGE_PATH", os.path.dirname(os.path.abspath(__file__)))
 IMAGES_DIR  = os.path.join(STORAGE_DIR, "images")
+THEME_IMAGES_DIR = os.path.join(STORAGE_DIR, "theme_images")
 STATE_FILE  = os.path.join(STORAGE_DIR, ".session_state.json")
 os.makedirs(IMAGES_DIR, exist_ok=True)
+os.makedirs(THEME_IMAGES_DIR, exist_ok=True)
 
 _default_state = {
     "theme_name": None,
@@ -205,7 +207,9 @@ def _load_state():
         try:
             with open(STATE_FILE, "r") as f:
                 saved = json.load(f)
-                return {**_default_state, **saved}
+                merged = {**_default_state, **saved}
+                merged["theme_images"] = _normalize_theme_image_refs(merged.get("theme_images", []))
+                return merged
         except Exception:
             pass
     return dict(_default_state)
@@ -217,12 +221,80 @@ def _save_state():
 state = _load_state()
 
 
+def _clear_theme_images_dir():
+    if not os.path.isdir(THEME_IMAGES_DIR):
+        return
+    for name in os.listdir(THEME_IMAGES_DIR):
+        path = os.path.join(THEME_IMAGES_DIR, name)
+        if os.path.isfile(path):
+            os.remove(path)
+
+
+def _normalize_theme_image_refs(theme_images):
+    """Session stores filenames only; drop legacy inline base64 entries."""
+    if not theme_images:
+        return []
+    if isinstance(theme_images[0], dict) and theme_images[0].get("filename"):
+        return theme_images
+    return []
+
+
+def _save_theme_images(files):
+    _clear_theme_images_dir()
+    refs = []
+    for i, f in enumerate(files):
+        raw = f.read()
+        mime = f.content_type or "image/jpeg"
+        ext = ".png" if mime == "image/png" else ".jpg"
+        filename = f"{i}{ext}"
+        with open(os.path.join(THEME_IMAGES_DIR, filename), "wb") as out:
+            out.write(raw)
+        refs.append({"filename": filename, "mime": mime})
+    return refs
+
+
+def _theme_images_available():
+    refs = state.get("theme_images") or []
+    if not refs:
+        return False
+    return all(
+        os.path.isfile(os.path.join(THEME_IMAGES_DIR, ref["filename"]))
+        for ref in refs
+    )
+
+
+def _encode_theme_images_for_openai():
+    encoded = []
+    for ref in state.get("theme_images", []):
+        path = os.path.join(THEME_IMAGES_DIR, ref["filename"])
+        with open(path, "rb") as f:
+            data = base64.b64encode(f.read()).decode("utf-8")
+        encoded.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:{ref['mime']};base64,{data}"},
+        })
+    return encoded
+
+
+def _theme_images_for_gemini():
+    parts = []
+    for ref in state.get("theme_images", []):
+        path = os.path.join(THEME_IMAGES_DIR, ref["filename"])
+        with open(path, "rb") as f:
+            raw = f.read()
+        parts.append(genai_types.Part(
+            inline_data=genai_types.Blob(mime_type=ref["mime"], data=raw)
+        ))
+    return parts
+
+
 def encode_uploaded_files(files):
     encoded = []
     for f in files:
         data = base64.b64encode(f.read()).decode("utf-8")
         mime = f.content_type or "image/jpeg"
         encoded.append({"type": "image_url", "image_url": {"url": f"data:{mime};base64,{data}"}})
+        f.seek(0)
     return encoded
 
 
@@ -243,7 +315,7 @@ def analyze():
 
     image_content = encode_uploaded_files(images)
     state["theme_name"] = theme_name
-    state["theme_images"] = image_content
+    state["theme_images"] = _save_theme_images(images)
 
     def call_breakdown():
         return openai_client.chat.completions.create(
@@ -380,7 +452,7 @@ def storyboard():
                 f"Voiceover Script:\n{voiceover}"
             )
         },
-        *state["theme_images"],
+        *_encode_theme_images_for_openai(),
     ]
     # Attempt 1: JSON mode (fastest, cleanest)
     response = openai_client.chat.completions.create(
@@ -423,33 +495,60 @@ def storyboard():
     return jsonify({"storyboard": result})
 
 
+def _tweak_visual_prompt_for_regen(visual_prompt):
+    response = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You refine storyboard visual prompts for image generation. "
+                    "Keep the same scene, storyboard intent, UI elements, labels, and metaphors. "
+                    "Make small improvements only: clearer composition, lighting, framing, or visual specificity. "
+                    "Do not add new story beats, narration, or elements not in the original."
+                ),
+            },
+            {
+                "role": "user",
+                "content": f"Refine this visual prompt for a fresh generation attempt:\n\n{visual_prompt}",
+            },
+        ],
+        max_tokens=600,
+    )
+    content = response.choices[0].message.content
+    return content.strip() if content else visual_prompt
+
+
 @app.route("/generate-image", methods=["POST"])
 def generate_image():
     body = request.get_json()
     line_number = body.get("line_number")
     visual_prompt = body.get("visual_prompt", "").strip()
+    regenerate = bool((body or {}).get("regenerate"))
 
-    if not state["theme_images"]:
+    if not _theme_images_available():
         return jsonify({"error": "No theme images in session"}), 400
     if not visual_prompt:
         return jsonify({"error": "Visual prompt required"}), 400
+
+    if regenerate:
+        visual_prompt = _tweak_visual_prompt_for_regen(visual_prompt)
 
     # Pass reference images directly to Gemini image generation.
     # Gemini sees the actual pixels — not a text description of them.
     # The style fingerprint is appended as the text anchor to lock character + palette.
     fingerprint = state.get("style_fingerprint") or ""
-    parts = []
-    for img_data in state["theme_images"]:
-        url = img_data["image_url"]["url"]
-        header, b64data = url.split(",", 1)
-        mime = header.split(":")[1].split(";")[0]
-        parts.append(genai_types.Part(
-            inline_data=genai_types.Blob(mime_type=mime, data=base64.b64decode(b64data))
-        ))
+    parts = _theme_images_for_gemini()
+    regen_note = (
+        "Produce a fresh variation of this scene. Same storyboard intent and instructions, "
+        "with refined composition and visual execution.\n\n"
+        if regenerate else ""
+    )
     parts.append(genai_types.Part(text=(
         "These are the reference images that define the visual style. "
         "Generate a new image that is visually faithful to this exact style, "
         "replicating set design, color palette, lighting, and composition.\n\n"
+        f"{regen_note}"
         f"Style anchor:\n{fingerprint}\n\n"
         f"{TECHNICAL_UI_RULES}\n\n"
         f"Scene to generate: {visual_prompt}"

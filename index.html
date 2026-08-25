@@ -790,6 +790,8 @@ function renderStoryboardReview() {
       const displayEl = acc.querySelector('.prompt-display');
       const activePrompt = (promptEl.style.display !== 'none' ? promptEl.value.trim() : displayEl.textContent.trim()) || item.visual_prompt;
 
+      const isRegenerate = lineKey in generatedImages;
+
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Generating…';
       statusEl.innerHTML = '';
@@ -798,7 +800,11 @@ function renderStoryboardReview() {
         const res = await fetch('/generate-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ line_number: item.line_number, visual_prompt: activePrompt }),
+          body: JSON.stringify({
+            line_number: item.line_number,
+            visual_prompt: activePrompt,
+            regenerate: isRegenerate,
+          }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Image generation failed');
