@@ -1241,17 +1241,38 @@ $('btn-edit-theme').addEventListener('click', () => {
   openThemeEditor($('theme-select').value);
 });
 
+async function fetchJsonWithTimeout(url, timeoutMs = 45000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+    const raw = await res.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; } catch (_) {
+      throw new Error(res.ok ? 'Invalid JSON from server' : `Server returned ${res.status}`);
+    }
+    if (!res.ok) throw new Error(data.error || `Server returned ${res.status} for ${url}`);
+    return data;
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error('Timed out loading themes — the server may be busy (storyboard/image/theme analysis). Wait a minute and refresh.');
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function loadThemes() {
   const sel = $('theme-select');
+  const status = $('preset-status');
   if (!sel) return;
   try {
-    const res = await fetch('/themes', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Server returned ${res.status} for /themes`);
-    const data = await res.json();
+    const data = await fetchJsonWithTimeout('/themes');
     themesCache = data.themes || [];
     if (!themesCache.length) {
       sel.innerHTML = '<option value="">No saved themes</option>';
-      $('preset-status').innerHTML = '<div class="notice error">No themes on disk — use + to create one.</div>';
+      status.innerHTML = '<div class="notice error">No themes on this server yet — use + to create one. If you saved on another deploy, mount a persistent volume at STORAGE_PATH.</div>';
       syncThemeToolbar();
       return;
     }
@@ -1264,11 +1285,13 @@ async function loadThemes() {
     themeSelectSkip = true;
     sel.value = preferred;
     themeSelectSkip = false;
-    await selectTheme(preferred, null);
     syncThemeToolbar();
+    selectTheme(preferred, null).catch((e) => {
+      status.innerHTML = `<div class="notice error">${escapeHtml(e.message)}</div>`;
+    });
   } catch (e) {
     sel.innerHTML = '<option value="">Error loading themes</option>';
-    $('preset-status').innerHTML = `<div class="notice error">${escapeHtml(e.message)} — is Flask running on this port? Hard refresh (Cmd+Shift+R).</div>`;
+    status.innerHTML = `<div class="notice error">${escapeHtml(e.message)} Hard refresh (Cmd+Shift+R). Check ${escapeHtml(window.location.origin)}/health in another tab.</div>`;
     syncThemeToolbar();
   }
 }
@@ -1964,7 +1987,14 @@ function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-loadThemes();
+try {
+  loadThemes();
+} catch (e) {
+  const sel = document.getElementById('theme-select');
+  if (sel) sel.innerHTML = '<option value="">Error starting app</option>';
+  const st = document.getElementById('preset-status');
+  if (st) st.innerHTML = `<div class="notice error">${String(e.message || e)} — try a current browser (Chrome/Safari/Firefox).</div>`;
+}
 </script>
 </body>
 </html>

@@ -163,6 +163,13 @@ Return ONLY the image generation prompt as plain text. No explanation. No commen
 
 app = Flask(__name__)
 
+
+@app.before_request
+def _reload_state_from_disk():
+    """Shared session file on STORAGE_PATH — every worker/replica sees the same themes."""
+    global state
+    state = _load_state()
+
 @app.errorhandler(404)
 def handle_not_found(e):
     if request.path in ("/", "/index.html") or request.path.endswith(".html"):
@@ -576,12 +583,40 @@ def index():
     return resp
 
 
+@app.route("/health", methods=["GET"])
+def health():
+    themes_root = saved_themes.saved_themes_root(STORAGE_DIR)
+    writable = os.access(STORAGE_DIR, os.W_OK)
+    try:
+        theme_count = len(saved_themes.list_saved(STORAGE_DIR))
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "storage_dir": STORAGE_DIR,
+            "themes_root": themes_root,
+            "writable": writable,
+            "error": str(e),
+        }), 500
+    return jsonify({
+        "ok": True,
+        "storage_dir": STORAGE_DIR,
+        "themes_root": themes_root,
+        "writable": writable,
+        "theme_count": theme_count,
+    })
+
+
 @app.route("/themes", methods=["GET"])
 def themes_list():
     active_id = state.get("theme_id")
     active_name = state.get("theme_name")
+    try:
+        themes = saved_themes.list_saved(STORAGE_DIR)
+    except Exception as e:
+        print(f"[themes] list_saved failed: {e}", flush=True)
+        return jsonify({"error": f"Could not read saved themes: {e}", "storage_dir": STORAGE_DIR}), 500
     return jsonify({
-        "themes": saved_themes.list_saved(STORAGE_DIR),
+        "themes": themes,
         "themes_storage": saved_themes.saved_themes_root(STORAGE_DIR),
         "active_theme_id": active_id,
         "active_theme_name": active_name,
