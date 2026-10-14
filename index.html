@@ -54,6 +54,342 @@
     gap: 40px;
   }
 
+  main.wide { max-width: 1280px; }
+
+  #storyboard-list { display: flex; flex-direction: column; gap: 16px; }
+
+  .frames-workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 960px) {
+    .frames-workbench { grid-template-columns: 1fr; }
+  }
+
+  .frames-script-col .frames-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .script-highlight-view {
+    max-height: min(88vh, 920px);
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .script-line-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    border-bottom: 1px solid #222;
+  }
+
+  .script-line-row:last-child { border-bottom: none; }
+
+  .script-line-row.blank {
+    padding: 4px 14px;
+    min-height: 8px;
+  }
+
+  .script-line-row.highlight {
+    background: #152515;
+    border-left: 3px solid var(--success);
+    cursor: pointer;
+  }
+
+  .script-line-row.highlight:hover { background: #1a3020; }
+
+  .script-line-row.highlight.active {
+    background: #1e3a28;
+    border-left-width: 4px;
+    box-shadow: inset 0 0 0 1px #3d6b45;
+  }
+
+  .beat-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .beat-pill {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .beat-pill:hover { border-color: #555; }
+
+  .beat-pill.active {
+    border-color: #7dce82;
+    background: #152515;
+    color: var(--accent);
+  }
+
+  .beat-pill.has-image { box-shadow: inset 0 -2px 0 #4caf50; }
+
+  .beat-pill.generating {
+    border-color: #6a8f6e;
+    animation: beat-pill-pulse 1.1s ease-in-out infinite;
+  }
+
+  @keyframes beat-pill-pulse {
+    50% { border-color: #7dce82; background: #1a2a1a; }
+  }
+
+  .img-placeholder.generating-state {
+    flex-direction: column;
+    gap: 10px;
+    color: var(--muted);
+  }
+
+  .active-beat-panel .single-beat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .step-composer-hidden { display: none !important; }
+
+  .script-line-num {
+    flex-shrink: 0;
+    width: 26px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .script-line-text {
+    flex: 1;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .script-line-row.highlight .script-line-text { color: var(--accent); }
+
+  .script-line-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #7dce82;
+    padding: 2px 8px;
+    border: 1px solid #2d5a32;
+    border-radius: 999px;
+    margin-top: 1px;
+  }
+
+  .frames-beats-col .beats-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .frames-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .frames-section-header h2 { margin: 0; }
+
+  #btn-view-all-frames {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.82);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 20px 48px;
+    overflow-y: auto;
+  }
+
+  .modal-overlay[hidden] { display: none !important; }
+
+  .frames-gallery-panel {
+    width: min(1280px, 96vw);
+    max-height: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  .frames-gallery-body {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    padding: 20px;
+  }
+
+  @media (max-width: 1100px) {
+    .frames-gallery-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 520px) {
+    .frames-gallery-body { grid-template-columns: 1fr; }
+  }
+
+  .gallery-frame-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gallery-frame-label {
+    padding: 8px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .gallery-frame-item img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    display: block;
+    background: #111;
+    flex: 1;
+  }
+
+  .review-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .review-row { grid-template-columns: 1fr; }
+  }
+
+  .review-script .frame-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .review-script .vo {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--accent);
+    margin-bottom: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .review-script .prompt-details {
+    margin-top: 4px;
+  }
+
+  .review-script .prompt-details summary {
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    list-style: none;
+  }
+
+  .review-script .prompt-details summary::-webkit-details-marker { display: none; }
+
+  .review-script .prompt-details[open] summary { margin-bottom: 8px; }
+
+  .review-script .prompt-edit {
+    width: 100%;
+    min-height: 120px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .review-image-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 120px;
+  }
+
+  .review-image-col .line-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #111;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+  }
+
+  .review-image-col .img-placeholder {
+    aspect-ratio: 16 / 9;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
   .step {
     display: none;
     flex-direction: column;
@@ -91,6 +427,18 @@
     margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+  }
+
+  select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
   }
 
   input[type="text"],
@@ -264,7 +612,6 @@
     margin: 0;
   }
 
-  #storyboard-list { display: flex; flex-direction: column; gap: 8px; }
 
   .current-card { border-color: #444; }
 
@@ -406,8 +753,6 @@
 
   a.btn-dl:hover { border-color: #555; }
 
-  .context-toggle-row { margin-top: 4px; }
-
   .voiceover-header {
     display: flex;
     justify-content: space-between;
@@ -418,38 +763,278 @@
 
   .voiceover-header label { margin-bottom: 0; }
 
-  .context-panel {
-    margin-top: 12px;
-    padding: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .context-panel .upload-zone { padding: 20px; }
-
-  .context-summary {
-    font-size: 13px;
-    color: var(--accent);
-    line-height: 1.5;
-  }
-
-  .context-summary .muted {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 4px;
-  }
-
-  .context-active { border-color: #555; color: var(--accent); }
-
   .accordion-body .line-img {
     width: 100%;
     border-radius: 8px;
     border: 1px solid var(--border);
     margin-top: 14px;
+  }
+
+  .theme-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .theme-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .theme-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .theme-card .muted {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .theme-card button {
+    flex-shrink: 0;
+  }
+
+  .custom-theme-toggle {
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    text-align: left;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .custom-theme-panel {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 8px;
+  }
+
+  .custom-theme-panel.open { display: flex; }
+
+  .theme-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .theme-badge {
+    display: inline-block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+
+  .script-scope {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .script-scope label.scope-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 14px;
+    color: var(--text);
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .line-picker {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--surface);
+  }
+
+  .line-picker.visible { display: flex; }
+
+  .line-pick-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+
+  .line-pick-row:hover { background: #222; }
+
+  .line-pick-row input { margin-top: 3px; flex-shrink: 0; }
+
+  .line-pick-num {
+    color: var(--muted);
+    font-size: 11px;
+    min-width: 28px;
+  }
+
+  .line-picker-tools {
+    display: none;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .line-picker-tools.visible { display: flex; }
+
+  .theme-toolbar {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  .theme-toolbar select {
+    width: min(380px, calc(100vw - 140px));
+    max-width: 380px;
+  }
+
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .script-workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    grid-template-rows: auto minmax(420px, auto);
+    column-gap: 24px;
+    row-gap: 8px;
+    align-items: stretch;
+  }
+
+  .workbench-label {
+    margin-bottom: 0;
+    align-self: end;
+  }
+
+  .workbench-label-right {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .workbench-script {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 420px;
+    height: 100%;
+    resize: vertical;
+  }
+
+  .workbench-options {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .options-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+
+  .options-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .options-section + .options-section {
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .options-card-footer {
+    margin-top: auto;
+    padding-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  @media (max-width: 900px) {
+    .script-workbench {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto minmax(320px, auto) auto;
+    }
+    .workbench-label-right { grid-column: 1; grid-row: 3; }
+    .workbench-script { grid-column: 1; grid-row: 2; min-height: 280px; height: auto; }
+    .workbench-options { grid-column: 1; grid-row: 4; height: auto; }
+    .workbench-label:first-of-type { grid-row: 1; }
+  }
+
+  details.theme-create:not([open]) {
+    display: none;
+  }
+
+  details.theme-create[open] {
+    margin-top: 12px;
+    max-width: 640px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    background: var(--surface);
+  }
+
+  details.theme-create > summary {
+    display: none;
+  }
+
+  #preset-status:not(:empty) {
+    margin-top: 10px;
   }
 </style>
 </head>
@@ -460,177 +1045,345 @@
   <h1>Storyboard</h1>
 </header>
 
-<main>
+<main class="wide">
 
-  <!-- STEP 1: Theme Input -->
+  <!-- Theme -->
   <section class="step visible" id="step-1">
-    <span class="step-label">Step 1</span>
-    <h2>Theme Input</h2>
-
-    <div>
-      <label for="theme-name">Theme Name</label>
-      <input type="text" id="theme-name" placeholder="e.g. Dark Neon Futurism" />
+    <span class="step-label">Theme</span>
+    <div class="theme-toolbar">
+      <select id="theme-select" aria-label="Saved theme">
+        <option value="">Loading themes…</option>
+      </select>
+      <button type="button" id="btn-create-theme" class="secondary icon-btn" title="Create theme" aria-label="Create theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button type="button" id="btn-edit-theme" class="secondary icon-btn" title="Edit theme" aria-label="Edit theme" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4zM14 6l4 4"/></svg>
+      </button>
+      <button type="button" id="btn-delete-theme" class="secondary icon-btn" title="Delete theme" aria-label="Delete theme" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+      </button>
     </div>
+    <div id="preset-status"></div>
 
-    <div>
-      <label>Reference Images <span style="color:var(--muted)">(10–20)</span></label>
-      <div class="upload-zone" id="upload-zone">
-        <input type="file" id="image-input" accept="image/*" multiple />
-        <div class="upload-label">Click to select or drag images here</div>
-        <div class="upload-count" id="upload-count">0 selected (min 10)</div>
+    <details class="theme-create" id="theme-create-details">
+      <summary>Create theme</summary>
+      <div class="custom-theme-panel open" id="custom-theme-panel" style="display:flex;margin-top:14px">
+        <input type="hidden" id="edit-theme-id" value="" />
+        <div style="width:100%">
+          <label for="theme-name">Theme name</label>
+          <input type="text" id="theme-name" placeholder="e.g. IPO Theme - ZO" />
+        </div>
+        <div style="width:100%">
+          <label>Reference images</label>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="image-input" accept="image/*" multiple />
+            <div class="upload-label">Cropped FSS frames</div>
+            <div class="upload-count" id="upload-count">0 selected (min 10)</div>
+          </div>
+          <div class="image-thumbs" id="image-thumbs"></div>
+        </div>
+        <div style="width:100%">
+          <label for="brand-pdf-input">Brand guidelines PDF (optional)</label>
+          <input type="file" id="brand-pdf-input" accept="application/pdf,.pdf" />
+          <p class="muted" id="brand-pdf-hint" style="font-size:12px;margin-top:6px;">Merged into theme analysis, standard storyboard, and image generation.</p>
+        </div>
+        <div class="btn-row">
+          <button id="btn-save-theme" disabled>Analyze &amp; save</button>
+          <button type="button" id="btn-cancel-theme" class="secondary" style="display:none">Cancel edit</button>
+        </div>
+        <div id="analyze-status"></div>
       </div>
-      <div class="image-thumbs" id="image-thumbs"></div>
-    </div>
-
-    <div>
-      <button id="btn-analyze" disabled>Analyze Theme</button>
-    </div>
-
-    <div id="analyze-status"></div>
+    </details>
   </section>
 
-  <hr class="divider" id="div-1" style="display:none" />
+  <hr class="divider" id="div-script" />
 
-  <!-- STEP 3: Voiceover Input -->
-  <section class="step" id="step-3">
-    <span class="step-label">Step 3</span>
-    <h2>Voiceover Script</h2>
+  <!-- Script + options -->
+  <section class="step visible" id="step-3">
+    <span class="step-label">Script</span>
+    <h2>Storyboard</h2>
+    <p class="muted" style="font-size:12px;margin-bottom:12px;color:var(--muted);">Smart beats grouping is always on. Pick a theme above before generating images.</p>
 
-    <div class="voiceover-header">
-      <label for="voiceover">Paste full voiceover script</label>
-      <button type="button" id="btn-context-toggle" class="secondary">Enable context</button>
+    <div class="script-workbench">
+      <label class="workbench-label" for="voiceover">Voiceover</label>
+      <label class="workbench-label workbench-label-right" id="workbench-options-label">Settings</label>
+      <textarea id="voiceover" class="workbench-script" rows="16" placeholder="Paste full script here…"></textarea>
+      <aside class="workbench-options">
+        <div class="options-card">
+          <div class="options-section">
+            <label>Scope</label>
+            <div class="script-scope">
+              <label class="scope-opt"><input type="radio" name="script-scope" value="full" checked /> Whole script</label>
+              <label class="scope-opt"><input type="radio" name="script-scope" value="partial" /> Selected lines</label>
+            </div>
+            <div class="line-picker-tools" id="line-picker-tools">
+              <button type="button" class="secondary" id="btn-lines-all">All</button>
+              <button type="button" class="secondary" id="btn-lines-none">Clear</button>
+            </div>
+            <div class="line-picker" id="line-picker"></div>
+          </div>
+
+          <div class="options-section">
+            <label for="generator-mode">Storyboard type</label>
+            <select id="generator-mode">
+              <option value="zo-ipo-lf" selected>ZO IPO LF kit (JSON)</option>
+              <option value="standard">Standard (GPT theme breakdown)</option>
+            </select>
+            <p class="muted" style="font-size:11px;margin-top:6px;line-height:1.4;">JSON kit plans frames; your selected theme’s reference PNGs drive image look.</p>
+            <label class="scope-opt" id="image-only-wrap" style="margin-top:4px;display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;">
+              <input type="checkbox" id="image-only-mode" checked />
+              Static images only
+            </label>
+          </div>
+
+          <div class="options-card-footer">
+            <button type="button" id="btn-storyboard" style="width:100%">Generate storyboard</button>
+            <div id="storyboard-status"></div>
+          </div>
+        </div>
+      </aside>
     </div>
-    <textarea id="voiceover" rows="10" placeholder="Paste your voiceover here..."></textarea>
-
-    <div id="context-panel" class="context-panel" style="display:none">
-      <div id="context-summary" class="context-summary">Loading context status…</div>
-      <div class="upload-zone context-upload">
-        <input type="file" id="pdf-input" accept="application/pdf,.pdf" multiple />
-        <div class="upload-label">Upload additional PDFs</div>
-        <div class="upload-count" id="pdf-count">0 PDFs selected</div>
-      </div>
-      <div class="btn-row" style="margin-top:12px">
-        <button type="button" id="btn-index-context">Index new PDFs</button>
-      </div>
-      <div id="context-status"></div>
-    </div>
-
-    <div>
-      <button id="btn-storyboard">Generate Storyboard</button>
-    </div>
-
-    <div id="storyboard-status"></div>
   </section>
 
   <hr class="divider" id="div-3" style="display:none" />
 
-  <!-- STEP 4: Storyboard Review -->
+  <!-- Frames -->
   <section class="step" id="step-4">
-    <span class="step-label">Step 4</span>
-    <h2>Storyboard</h2>
+    <span class="step-label">Frames</span>
+    <div class="frames-section-header">
+      <h2>Generated frames</h2>
+      <button type="button" id="btn-view-all-frames" class="secondary" disabled>View all images</button>
+    </div>
     <div id="storyboard-success"></div>
-    <div id="storyboard-list"></div>
+    <div class="frames-workbench">
+      <div class="frames-script-col">
+        <label>Voiceover script</label>
+        <p class="frames-hint">Green rows = beats with a suggested image. Click a row to jump to that frame.</p>
+        <div id="script-highlight-view" class="script-highlight-view"></div>
+      </div>
+      <div class="frames-beats-col">
+        <p class="beats-hint">One frame at a time — pick a green script row or a chip below. First 3 images auto-generate in the background.</p>
+        <div id="beat-strip" class="beat-strip"></div>
+        <div id="active-beat-panel" class="active-beat-panel"></div>
+      </div>
+    </div>
   </section>
 
 
 </main>
 
+<div id="frames-gallery-modal" class="modal-overlay" hidden aria-hidden="true">
+  <div class="frames-gallery-panel" role="dialog" aria-labelledby="frames-gallery-title">
+    <div class="modal-header">
+      <h3 id="frames-gallery-title">Storyboard sequence</h3>
+      <button type="button" id="btn-close-gallery" class="secondary icon-btn" aria-label="Close">×</button>
+    </div>
+    <div id="frames-gallery-body" class="frames-gallery-body"></div>
+  </div>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 let storyboardData = [];
+let lastVoiceoverScript = '';
 let currentLineIndex = 0;
 let generatedImages = {};
-let contextModeEnabled = false;
-let selectedPdfs = [];
-let contextStatus = { indexed_pdf_count: 0, total_chunks: 0, ready: false, files: [] };
+const generatingLines = new Set();
+const promptDrafts = {};
+let scriptLines = [];
+let storyboardFormat = 'standard';
+let zoIpoStoryboard = null;
+let activeBeatLine = null;
+let beatItemsCache = [];
 
-function renderContextSummary() {
-  const el = $('context-summary');
-  const n = contextStatus.indexed_pdf_count || 0;
-  if (n > 0) {
-    el.innerHTML = `${n} PDF${n === 1 ? '' : 's'} already indexed — add more if needed<div class="muted">${contextStatus.total_chunks} chunks in store</div>`;
-  } else {
-    el.innerHTML = `No PDFs indexed yet<div class="muted">Upload Varsity PDFs below, then click Index new PDFs</div>`;
+let themesCache = [];
+
+const FRAME_SIZE_HINT = 'Output: 16:9 landscape frame (1920×1080), widescreen broadcast — not square.';
+
+function setComposerVisible(visible) {
+  $('step-3')?.classList.toggle('step-composer-hidden', !visible);
+  $('div-script')?.classList.toggle('step-composer-hidden', !visible);
+}
+
+function hideComposerAfterStoryboard() {
+  setComposerVisible(false);
+  $('step-4')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function bindGeneratorModeUI() {
+  const gen = $('generator-mode');
+  if (!gen) return;
+  const sync = () => {
+    const kit = gen.value === 'zo-ipo-lf';
+    const imgOnly = $('image-only-wrap');
+    if (imgOnly) imgOnly.style.display = kit ? 'flex' : 'none';
+  };
+  gen.addEventListener('change', sync);
+  sync();
+}
+
+bindGeneratorModeUI();
+
+function syncThemeToolbar() {
+  const id = $('theme-select').value;
+  $('btn-delete-theme').disabled = !id;
+  $('btn-edit-theme').disabled = !id;
+}
+
+$('btn-create-theme').addEventListener('click', () => {
+  resetThemeForm();
+  $('theme-create-details').open = true;
+  $('theme-name').focus();
+});
+
+$('btn-edit-theme').addEventListener('click', () => {
+  openThemeEditor($('theme-select').value);
+});
+
+async function loadThemes() {
+  const sel = $('theme-select');
+  if (!sel) return;
+  try {
+    const res = await fetch('/themes', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Server returned ${res.status} for /themes`);
+    const data = await res.json();
+    themesCache = data.themes || [];
+    if (!themesCache.length) {
+      sel.innerHTML = '<option value="">No saved themes</option>';
+      $('preset-status').innerHTML = '<div class="notice error">No themes on disk — use + to create one.</div>';
+      syncThemeToolbar();
+      return;
+    }
+    sel.innerHTML = themesCache.map(t =>
+      `<option value="${escapeHtml(t.theme_id)}">${escapeHtml(t.display_name)} (${t.ref_count} refs)</option>`
+    ).join('');
+    const preferred = (data.active_theme_id && themesCache.some(t => t.theme_id === data.active_theme_id))
+      ? data.active_theme_id
+      : themesCache[0].theme_id;
+    themeSelectSkip = true;
+    sel.value = preferred;
+    themeSelectSkip = false;
+    await selectTheme(preferred, null);
+    syncThemeToolbar();
+  } catch (e) {
+    sel.innerHTML = '<option value="">Error loading themes</option>';
+    $('preset-status').innerHTML = `<div class="notice error">${escapeHtml(e.message)} — is Flask running on this port? Hard refresh (Cmd+Shift+R).</div>`;
+    syncThemeToolbar();
   }
 }
 
-async function loadContextStatus() {
-  try {
-    const res = await fetch('/context/status');
-    const data = await res.json();
-    if (!res.ok) return;
-    contextStatus = data;
-    renderContextSummary();
-  } catch (_) {}
+function openThemeEditor(themeId) {
+  if (!themeId) return;
+  $('edit-theme-id').value = themeId;
+  $('btn-cancel-theme').style.display = '';
+  $('btn-save-theme').textContent = 'Re-analyze & save';
+  const t = themesCache.find(x => x.theme_id === themeId);
+  if (t) $('theme-name').value = t.display_name;
+  $('theme-create-details').open = true;
+  const brandNote = t?.has_brand_guidelines ? ' Brand PDF on file — upload a new PDF to replace.' : '';
+  $('analyze-status').innerHTML = `<div class="muted">Upload 10–20 PNGs to replace refs, or leave images empty to re-analyze with saved refs.${brandNote}</div>`;
+  updateSaveThemeBtn();
 }
 
-$('btn-context-toggle').addEventListener('click', () => {
-  contextModeEnabled = !contextModeEnabled;
-  const panel = $('context-panel');
-  const btn = $('btn-context-toggle');
-  panel.style.display = contextModeEnabled ? 'flex' : 'none';
-  btn.classList.toggle('context-active', contextModeEnabled);
-  btn.textContent = contextModeEnabled ? 'Context enabled' : 'Enable context';
-  if (contextModeEnabled) loadContextStatus();
-});
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
 
-const pdfInput = $('pdf-input');
-pdfInput.addEventListener('change', () => {
-  selectedPdfs = Array.from(pdfInput.files);
-  $('pdf-count').textContent = `${selectedPdfs.length} PDFs selected`;
-});
-
-$('btn-index-context').addEventListener('click', async () => {
-  const statusEl = $('context-status');
-  if (selectedPdfs.length === 0) {
-    statusEl.innerHTML = `<div class="notice error">Select at least one PDF.</div>`;
+async function selectTheme(themeId, btn) {
+  if (!themeId) {
+    $('preset-status').innerHTML = `<div class="notice error">Choose a theme from the dropdown.</div>`;
     return;
   }
-
-  const stages = [
-    'Extracting PDF text…',
-    'Creating chunks…',
-    'Creating embeddings…',
-  ];
-  let stageIdx = 0;
-  statusEl.innerHTML = `<div class="notice success">${stages[0]}</div>`;
-  const timer = setInterval(() => {
-    stageIdx = Math.min(stageIdx + 1, stages.length - 1);
-    statusEl.innerHTML = `<div class="notice success">${stages[stageIdx]}</div>`;
-  }, 2500);
-
-  $('btn-index-context').disabled = true;
-  const fd = new FormData();
-  selectedPdfs.forEach(f => fd.append('pdfs', f));
-
+  const status = $('preset-status');
+  const prev = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
+  status.innerHTML = '';
   try {
-    const res = await fetch('/context/index', { method: 'POST', body: fd });
+    const res = await fetch('/themes/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme_id: themeId }),
+    });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Indexing failed');
-
-    clearInterval(timer);
-    let msg = `Context ready — ${data.already_indexed} PDF(s) already indexed, ${data.newly_indexed} new PDF(s) indexed`;
-    if (data.new_chunks) msg += ` (${data.new_chunks} new chunks)`;
-    if (data.errors && data.errors.length) {
-      msg += `. Skipped: ${data.errors.join('; ')}`;
-    }
-    statusEl.innerHTML = `<div class="notice success">${msg}</div>`;
-    loadContextStatus();
+    if (!res.ok) throw new Error(data.error || 'Could not load theme');
+    let msg = `Using “${data.display_name}”.`;
+    if (data.ref_count === 0) msg += ' Add reference images before generating pictures.';
+    if (data.has_brand_guidelines) msg += ' Brand guidelines loaded.';
+    status.innerHTML = `<div class="notice success">${escapeHtml(msg)}</div>`;
   } catch (e) {
-    clearInterval(timer);
-    statusEl.innerHTML = `<div class="notice error">${e.message}</div>`;
+    status.innerHTML = `<div class="notice error">${escapeHtml(e.message)}</div>`;
   } finally {
-    $('btn-index-context').disabled = false;
+    if (btn) { btn.disabled = false; btn.textContent = prev; }
   }
+}
+
+let themeSelectSkip = false;
+$('theme-select').addEventListener('change', () => {
+  syncThemeToolbar();
+  if (themeSelectSkip) return;
+  const id = $('theme-select').value;
+  if (id) selectTheme(id, null);
 });
 
-loadContextStatus();
+async function deleteThemeById(id) {
+  const enc = encodeURIComponent(id);
+  let res = await fetch(`/themes/${enc}/delete`, { method: 'POST' });
+  if (res.status === 404) {
+    res = await fetch(`/themes/${enc}`, { method: 'DELETE' });
+  }
+  const raw = await res.text();
+  let data = {};
+  try { data = JSON.parse(raw); } catch (_) {}
+  if (!res.ok) {
+    const msg = data.error
+      || (raw.includes('404 Not Found') ? 'Delete API not found — restart the Flask server (python app.py) and try again.' : null)
+      || `Delete failed (${res.status})`;
+    throw new Error(msg);
+  }
+}
+
+$('btn-delete-theme').addEventListener('click', async () => {
+  const id = $('theme-select').value;
+  if (!id || !confirm('Delete this theme permanently?')) return;
+  try {
+    await deleteThemeById(id);
+  } catch (e) {
+    $('preset-status').innerHTML = `<div class="notice error">${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  $('preset-status').innerHTML = `<div class="notice success">Theme deleted.</div>`;
+  themeSelectSkip = true;
+  await loadThemes();
+  themeSelectSkip = false;
+  syncThemeToolbar();
+});
+
+function resetThemeForm() {
+  $('edit-theme-id').value = '';
+  $('theme-name').value = '';
+  selectedFiles = [];
+  if (imageInput) imageInput.value = '';
+  const brandInput = $('brand-pdf-input');
+  if (brandInput) brandInput.value = '';
+  $('upload-count').textContent = '0 selected (min 10)';
+  $('image-thumbs').innerHTML = '';
+  $('btn-save-theme').textContent = 'Analyze & save theme';
+  $('btn-cancel-theme').style.display = 'none';
+  $('btn-save-theme').disabled = true;
+}
+
+$('btn-cancel-theme').addEventListener('click', () => {
+  resetThemeForm();
+  $('theme-create-details').open = false;
+  $('analyze-status').innerHTML = '';
+});
 
 // ── Image upload ─────────────────────────────────────────────────────────────
 const imageInput = $('image-input');
 let selectedFiles = [];
 
-imageInput.addEventListener('change', () => {
+imageInput?.addEventListener('change', () => {
   selectedFiles = Array.from(imageInput.files).slice(0, 20);
   $('upload-count').textContent = `${selectedFiles.length} selected (min 10, max 20)`;
 
@@ -642,50 +1395,127 @@ imageInput.addEventListener('change', () => {
     thumbs.appendChild(img);
   });
 
-  $('btn-analyze').disabled = selectedFiles.length < 10 || selectedFiles.length > 20 || !$('theme-name').value.trim();
+  updateSaveThemeBtn();
 });
 
-$('theme-name').addEventListener('input', () => {
-  $('btn-analyze').disabled = selectedFiles.length < 10 || selectedFiles.length > 20 || !$('theme-name').value.trim();
-});
+function updateSaveThemeBtn() {
+  const editId = $('edit-theme-id').value.trim();
+  const t = editId ? themesCache.find(x => x.theme_id === editId) : null;
+  const hasSavedRefs = t && t.ref_count >= 10;
+  const okImages = selectedFiles.length >= 10 && selectedFiles.length <= 20;
+  const okKeepRefs = editId && hasSavedRefs && selectedFiles.length === 0;
+  const okImagesOrEdit = okImages || okKeepRefs;
+  $('btn-save-theme').disabled = !okImagesOrEdit || !$('theme-name').value.trim();
+}
 
-// ── Step 2: Analyze Theme ─────────────────────────────────────────────────────
-$('btn-analyze').addEventListener('click', async () => {
+$('theme-name').addEventListener('input', updateSaveThemeBtn);
+
+$('btn-save-theme').addEventListener('click', async () => {
   const themeName = $('theme-name').value.trim();
+  const editId = $('edit-theme-id').value.trim();
   const status = $('analyze-status');
+  const btn = $('btn-save-theme');
+  const prev = btn.textContent;
 
-  $('btn-analyze').disabled = true;
-  $('btn-analyze').innerHTML = '<span class="spinner"></span>Analyzing…';
-  status.innerHTML = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+  status.innerHTML = `<div class="notice success">Running GPT breakdown + brand merge (one time)…</div>`;
 
   const formData = new FormData();
-  formData.append('theme_name', themeName);
+  formData.append('display_name', themeName);
   selectedFiles.forEach(f => formData.append('images', f));
+  const brandPdf = $('brand-pdf-input')?.files?.[0];
+  if (brandPdf) formData.append('brand_guidelines', brandPdf);
 
   try {
-    const res = await fetch('/analyze', { method: 'POST', body: formData });
+    const url = editId ? `/themes/${encodeURIComponent(editId)}/reanalyze` : '/themes/create';
+    const res = await fetch(url, { method: 'POST', body: formData });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Save failed');
 
-    if (!res.ok) throw new Error(data.error || 'Analysis failed');
-
-    status.innerHTML = `<div class="notice success">Theme analyzed successfully.</div>`;
-    show('div-1');
-    show('step-3');
-    loadContextStatus();
+    status.innerHTML = `<div class="notice success">Theme saved — “${escapeHtml(data.display_name)}”. Use it anytime without re-analyzing.</div>`;
+    resetThemeForm();
+    $('theme-create-details').open = false;
+    themeSelectSkip = true;
+    await loadThemes();
+    $('theme-select').value = data.theme_id;
+    themeSelectSkip = false;
+    syncThemeToolbar();
+    await selectTheme(data.theme_id, null);
   } catch (e) {
-    status.innerHTML = `<div class="notice error">${e.message}</div>`;
+    status.innerHTML = `<div class="notice error">${escapeHtml(e.message)}</div>`;
   } finally {
-    $('btn-analyze').textContent = 'Analyze Theme';
-    $('btn-analyze').disabled = false;
+    btn.textContent = prev;
+    updateSaveThemeBtn();
   }
 });
 
+function syncScriptLines() {
+  scriptLines = $('voiceover').value.split('\n')
+    .map(t => t.trim())
+    .filter(Boolean)
+    .map((text, i) => ({ num: i + 1, text }));
+  renderLinePicker();
+}
+
+function renderLinePicker() {
+  const picker = $('line-picker');
+  if (!scriptLines.length) {
+    picker.innerHTML = '';
+    return;
+  }
+  picker.innerHTML = scriptLines.map(l => `
+    <label class="line-pick-row">
+      <input type="checkbox" class="line-pick-cb" data-num="${l.num}" checked />
+      <span class="line-pick-num">${l.num}</span>
+      <span>${escapeHtml(l.text)}</span>
+    </label>
+  `).join('');
+}
+
+function isPartialScope() {
+  return document.querySelector('input[name="script-scope"]:checked')?.value === 'partial';
+}
+
+function updateScriptScopeUI() {
+  const partial = isPartialScope();
+  $('line-picker').classList.toggle('visible', partial && scriptLines.length > 0);
+  $('line-picker-tools').classList.toggle('visible', partial && scriptLines.length > 0);
+}
+
+document.querySelectorAll('input[name="script-scope"]').forEach(r => {
+  r.addEventListener('change', updateScriptScopeUI);
+});
+
+$('voiceover').addEventListener('input', () => { syncScriptLines(); updateScriptScopeUI(); });
+
+$('btn-lines-all').addEventListener('click', () => {
+  document.querySelectorAll('.line-pick-cb').forEach(cb => { cb.checked = true; });
+});
+$('btn-lines-none').addEventListener('click', () => {
+  document.querySelectorAll('.line-pick-cb').forEach(cb => { cb.checked = false; });
+});
+
+function getStoryboardInput() {
+  const full = $('voiceover').value.trim();
+  if (!isPartialScope()) {
+    return { voiceover: full, script_scope: 'full', selected_line_numbers: [] };
+  }
+  const selected = [...document.querySelectorAll('.line-pick-cb:checked')].map(cb => parseInt(cb.dataset.num, 10));
+  if (!selected.length) return null;
+  const voiceover = scriptLines.filter(l => selected.includes(l.num)).map(l => l.text).join('\n');
+  return { voiceover, script_scope: 'partial', selected_line_numbers: selected };
+}
+
 // ── Step 4: Generate Storyboard ───────────────────────────────────────────────
 $('btn-storyboard').addEventListener('click', async () => {
-  const voiceover = $('voiceover').value.trim();
   const status = $('storyboard-status');
-
-  if (!voiceover) {
+  const sb = getStoryboardInput();
+  if (!sb) {
+    status.innerHTML = `<div class="notice error">Paste a script and select at least one line, or use whole script.</div>`;
+    return;
+  }
+  if (!sb.voiceover) {
     status.innerHTML = `<div class="notice error">Paste a voiceover script first.</div>`;
     return;
   }
@@ -694,145 +1524,434 @@ $('btn-storyboard').addEventListener('click', async () => {
   $('btn-storyboard').innerHTML = '<span class="spinner"></span>Generating…';
   status.innerHTML = '';
 
+  const isKit = $('generator-mode').value === 'zo-ipo-lf';
+  const themeId = $('theme-select').value;
+
   try {
+    if (!themeId) {
+      status.innerHTML = `<div class="notice error">Select a saved theme above (reference PNGs are required for images).</div>`;
+      return;
+    }
+    await selectTheme(themeId, null);
     const res = await fetch('/storyboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ voiceover, use_context: contextModeEnabled }),
+      body: JSON.stringify({
+        voiceover: sb.voiceover,
+        script_scope: sb.script_scope,
+        selected_line_numbers: sb.selected_line_numbers,
+        use_context: false,
+        beat_granularity: 'smart',
+        kit_id: isKit ? 'zo-ipo-lf' : null,
+        theme_id: isKit ? null : themeId,
+        image_only: $('image-only-mode') ? $('image-only-mode').checked : true,
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
 
-    storyboardData = data.storyboard;
+    storyboardFormat = data.format || 'standard';
+    lastVoiceoverScript = data.voiceover_script || sb.voiceover;
+    zoIpoStoryboard = storyboardFormat === 'zo-ipo-lf' ? data.storyboard : null;
+    storyboardData = storyboardFormat === 'zo-ipo-lf'
+      ? (data.graphics || []).map((g, i) => ({
+          line_number: i + 1,
+          graphic_id: g.id,
+          voiceover: resolveGraphicVoiceover(g.vo, sb.voiceover),
+          visual_prompt: g.shot === 'PRESENTER' ? '(Presenter footage — no board image)' : (g.assets_to_create && g.assets_to_create[0]?.spec) || (g.hero && g.hero.description) || String(g.graphic_type || ''),
+          _graphic: g,
+          _skip_image: g.shot === 'PRESENTER',
+        }))
+      : data.storyboard;
     generatedImages = {};
+    generatingLines.clear();
 
-    status.innerHTML = `<div class="notice success">Storyboard generated — ${storyboardData.length} lines.</div>`;
-    renderStoryboardReview();
-
+    const nLines = sb.voiceover.split('\n').filter(l => l.trim()).length;
+    const scopeNote = sb.script_scope === 'partial' ? ` (lines ${sb.selected_line_numbers.join(', ')})` : '';
+    const count = storyboardFormat === 'zo-ipo-lf' ? (data.graphics || []).length : storyboardData.length;
+    const unit = storyboardFormat === 'zo-ipo-lf' ? 'graphic' : 'frame';
+    status.innerHTML = `<div class="notice success">${storyboardFormat === 'zo-ipo-lf' ? 'ZO IPO LF' : 'Storyboard'} — ${count} ${unit}${count === 1 ? '' : 's'} from ${nLines} script lines${scopeNote}.</div>`;
+    hideComposerAfterStoryboard();
     show('div-3');
     show('step-4');
+    document.querySelector('main').classList.add('wide');
+    await renderStoryboardReview();
   } catch (e) {
-    status.innerHTML = `<div class="notice error">${e.message}</div>`;
+    status.innerHTML = `<div class="notice error">${escapeHtml(e.message)}</div>`;
   } finally {
-    $('btn-storyboard').textContent = 'Generate Storyboard';
+    $('btn-storyboard').textContent = 'Generate storyboard';
     $('btn-storyboard').disabled = false;
   }
 });
 
-// ── Step 4: Render accordion cards with inline image generation ───────────────
-function renderStoryboardReview() {
-  const list = $('storyboard-list');
-  list.innerHTML = '';
-  storyboardData.forEach(item => {
-    const lineKey = String(item.line_number);
-    const hasImage = lineKey in generatedImages;
+function voFragmentCore(vo) {
+  return String(vo || '')
+    .trim()
+    .replace(/^[\s.…]+/, '')
+    .replace(/[\s.…]+$/, '')
+    .replace(/\.+$/, '')
+    .trim();
+}
 
-    const acc = document.createElement('div');
-    acc.className = 'accordion';
-    acc.dataset.line = lineKey;
-    acc.innerHTML = `
-      <div class="accordion-header">
-        <span class="line-num">Line ${item.line_number}</span>
-        <span class="vo-preview">${escHtml(item.voiceover)}</span>
-        <span class="accordion-chevron">▼</span>
-      </div>
-      <div class="accordion-body">
-        <div class="vo">${escHtml(item.voiceover)}</div>
-        <div class="vp-row">
-          <div class="vp prompt-display">${escHtml(item.visual_prompt)}</div>
-          <button class="btn-pencil" title="Edit prompt">✎</button>
-        </div>
-        <textarea class="prompt-edit" style="display:none">${escHtml(item.visual_prompt)}</textarea>
-        <div class="btn-row">
-          <button class="btn-gen-line">${hasImage ? 'Regenerate Image' : 'Generate Image'}</button>
-          ${hasImage ? `<a class="btn-dl secondary" href="/download/${item.line_number}" download>Download</a>` : ''}
-        </div>
-        <div class="gen-status-line"></div>
-        <img class="generated-img line-img" src="" alt="" style="${hasImage ? 'display:block' : 'display:none'}" />
-      </div>
-    `;
+function normVoLine(s) {
+  return String(s || '').toLowerCase().replace(/[^\w\s.%]/g, ' ').replace(/\s+/g, ' ').trim();
+}
 
-    if (hasImage) {
-      acc.querySelector('.line-img').src = `/image/${item.line_number}`;
+function resolveGraphicVoiceover(vo, fullScript) {
+  const v = (vo || '').trim();
+  if (!v || !fullScript) return v;
+  const lines = fullScript.split('\n').map(l => l.trim()).filter(Boolean);
+  const exact = lines.find(l => l === v);
+  if (exact) return exact;
+  const core = voFragmentCore(v);
+  if (!core) return v;
+  let best = null;
+  let bestLen = 0;
+  for (const line of lines) {
+    if (line.includes(core) || core.includes(line)) {
+      if (line.length > bestLen) { best = line; bestLen = line.length; }
+      continue;
     }
+    const nc = normVoLine(core);
+    const nl = normVoLine(line);
+    if (nc.length >= 8 && (nl.includes(nc) || nc.includes(nl))) {
+      if (line.length > bestLen) { best = line; bestLen = line.length; }
+    }
+  }
+  return best || v;
+}
 
-    acc.querySelector('.accordion-header').addEventListener('click', () => {
-      acc.classList.toggle('open');
-    });
-
-    acc.querySelector('.btn-pencil').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const display = acc.querySelector('.prompt-display');
-      const textarea = acc.querySelector('.prompt-edit');
-      const pencil = acc.querySelector('.btn-pencil');
-      const editing = textarea.style.display === 'none';
-      if (editing) {
-        textarea.value = display.textContent;
-        textarea.style.display = 'block';
-        display.style.display = 'none';
-        pencil.textContent = '✕';
-        pencil.title = 'Cancel edit';
-      } else {
-        display.textContent = textarea.value || item.visual_prompt;
-        textarea.style.display = 'none';
-        display.style.display = '';
-        pencil.textContent = '✎';
-        pencil.title = 'Edit prompt';
+function parseScriptLinesSpec(spec) {
+  const out = [];
+  String(spec || '').split(',').forEach(part => {
+    part = part.trim();
+    if (!part) return;
+    if (part.includes('-')) {
+      const [a, b] = part.split('-').map(n => parseInt(n, 10));
+      if (!Number.isNaN(a) && !Number.isNaN(b)) {
+        for (let i = Math.min(a, b); i <= Math.max(a, b); i++) out.push(i);
       }
-    });
-
-    acc.querySelector('.btn-gen-line').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const btn = acc.querySelector('.btn-gen-line');
-      const statusEl = acc.querySelector('.gen-status-line');
-      const imgEl = acc.querySelector('.line-img');
-      const promptEl = acc.querySelector('.prompt-edit');
-      const displayEl = acc.querySelector('.prompt-display');
-      const activePrompt = (promptEl.style.display !== 'none' ? promptEl.value.trim() : displayEl.textContent.trim()) || item.visual_prompt;
-
-      const isRegenerate = lineKey in generatedImages;
-
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Generating…';
-      statusEl.innerHTML = '';
-
-      try {
-        const res = await fetch('/generate-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            line_number: item.line_number,
-            visual_prompt: activePrompt,
-            regenerate: isRegenerate,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Image generation failed');
-
-        generatedImages[lineKey] = true;
-        imgEl.src = `/image/${item.line_number}?t=${Date.now()}`;
-        imgEl.style.display = 'block';
-        btn.textContent = 'Regenerate Image';
-        // Add/update download link
-        let dl = acc.querySelector('.btn-dl');
-        if (!dl) {
-          dl = document.createElement('a');
-          dl.className = 'btn-dl secondary';
-          dl.textContent = 'Download';
-          btn.after(dl);
-        }
-        dl.href = `/download/${item.line_number}`;
-        dl.setAttribute('download', '');
-      } catch (err) {
-        statusEl.innerHTML = `<div class="notice error">${err.message}</div>`;
-        btn.textContent = lineKey in generatedImages ? 'Regenerate Image' : 'Generate Image';
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
-    list.appendChild(acc);
+    } else {
+      const n = parseInt(part, 10);
+      if (!Number.isNaN(n)) out.push(n);
+    }
   });
+  return out;
+}
+
+function buildBeatLineMap(fullScript, beats) {
+  const scriptLines = fullScript.split('\n');
+  const beatByIndex = new Map();
+  const lineNumByIndex = [];
+  let n = 0;
+  scriptLines.forEach((text, i) => {
+    if (text.trim()) {
+      n += 1;
+      lineNumByIndex[i] = n;
+    }
+  });
+
+  beats.forEach(item => {
+    const vo = resolveGraphicVoiceover(item.voiceover, fullScript);
+    if (item.script_lines) {
+      parseScriptLinesSpec(item.script_lines).forEach(num => {
+        scriptLines.forEach((_, i) => {
+          if (lineNumByIndex[i] === num) beatByIndex.set(i, item);
+        });
+      });
+    }
+    vo.split('\n').forEach(part => {
+      const p = part.trim();
+      if (!p) return;
+      const core = voFragmentCore(p);
+      scriptLines.forEach((text, i) => {
+        const t = text.trim();
+        if (!t) return;
+        if (t === p || (core && (t.includes(core) || normVoLine(t).includes(normVoLine(core))))) {
+          beatByIndex.set(i, item);
+        }
+      });
+    });
+  });
+
+  return { scriptLines, beatByIndex, lineNumByIndex };
+}
+
+function renderScriptHighlights(fullScript, beats) {
+  const el = $('script-highlight-view');
+  if (!el) return;
+  if (!fullScript.trim()) {
+    el.innerHTML = '<div class="muted" style="padding:16px">No script text.</div>';
+    return;
+  }
+  const { scriptLines, beatByIndex, lineNumByIndex } = buildBeatLineMap(fullScript, beats);
+  el.innerHTML = scriptLines.map((text, i) => {
+    if (!text.trim()) return '<div class="script-line-row blank"></div>';
+    const beat = beatByIndex.get(i);
+    let cls = beat ? 'script-line-row highlight' : 'script-line-row';
+    if (beat && String(beat.line_number) === String(activeBeatLine)) cls += ' active';
+    const badge = beat
+      ? `<span class="script-line-badge">${escHtml(beat.graphic_id || `F${beat.line_number}`)}</span>`
+      : '';
+    const num = lineNumByIndex[i] || '·';
+    const beatAttr = beat ? ` data-beat-line="${beat.line_number}"` : '';
+    return `<div class="${cls}" data-script-idx="${i}"${beatAttr}>` +
+      `<span class="script-line-num">${num}</span>` +
+      `<span class="script-line-text">${escHtml(text)}</span>${badge}</div>`;
+  }).join('');
+
+  el.querySelectorAll('.script-line-row.highlight').forEach(row => {
+    row.addEventListener('click', () => {
+      const ln = row.dataset.beatLine;
+      if (ln) setActiveBeat(parseInt(ln, 10));
+    });
+  });
+}
+
+function renderBeatStrip(beats) {
+  const strip = $('beat-strip');
+  if (!strip) return;
+  strip.innerHTML = beats.map(item => {
+    const ln = item.line_number;
+    const label = item.graphic_id || `Frame ${ln}`;
+    const has = String(ln) in generatedImages;
+    const active = String(ln) === String(activeBeatLine);
+    let cls = 'beat-pill';
+    if (active) cls += ' active';
+    if (has) cls += ' has-image';
+    return `<button type="button" class="${cls}" data-line="${ln}">${escHtml(label)}</button>`;
+  }).join('');
+  strip.querySelectorAll('.beat-pill').forEach(btn => {
+    btn.addEventListener('click', () => setActiveBeat(parseInt(btn.dataset.line, 10)));
+  });
+}
+
+function updateBeatStripStates() {
+  $('beat-strip')?.querySelectorAll('.beat-pill').forEach(btn => {
+    const ln = btn.dataset.line;
+    btn.classList.toggle('has-image', ln in generatedImages);
+    btn.classList.toggle('active', String(ln) === String(activeBeatLine));
+    btn.classList.toggle('generating', generatingLines.has(ln));
+  });
+  updateViewAllFramesButton();
+}
+
+function countGeneratedFrames() {
+  return beatItemsCache.filter(item => String(item.line_number) in generatedImages).length;
+}
+
+function updateViewAllFramesButton() {
+  const btn = $('btn-view-all-frames');
+  if (!btn) return;
+  const n = countGeneratedFrames();
+  btn.disabled = n === 0;
+  btn.textContent = n ? `View all images (${n})` : 'View all images';
+}
+
+function openFramesGallery() {
+  const modal = $('frames-gallery-modal');
+  const body = $('frames-gallery-body');
+  const items = beatItemsCache.filter(item => String(item.line_number) in generatedImages);
+  if (!items.length || !modal || !body) return;
+  body.innerHTML = items.map(item => `
+    <div class="gallery-frame-item">
+      <div class="gallery-frame-label">${escHtml(beatLabel(item))}</div>
+      <img src="/image/${item.line_number}?t=${Date.now()}" alt="" loading="lazy" />
+    </div>
+  `).join('');
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFramesGallery() {
+  const modal = $('frames-gallery-modal');
+  if (!modal) return;
+  modal.hidden = true;
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+$('btn-view-all-frames')?.addEventListener('click', openFramesGallery);
+$('btn-close-gallery')?.addEventListener('click', closeFramesGallery);
+$('frames-gallery-modal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'frames-gallery-modal') closeFramesGallery();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('frames-gallery-modal')?.hidden) closeFramesGallery();
+});
+
+function isBeatGenerating(lineNumber) {
+  return generatingLines.has(String(lineNumber));
+}
+
+function beatLabel(item) {
+  return item.graphic_id
+    ? `${item.graphic_id} · ${item._graphic?.graphic_type || ''}`
+    : item.script_lines
+      ? `Frame ${item.line_number} · lines ${item.script_lines}`
+      : `Frame ${item.line_number}`;
+}
+
+function defaultPromptText(item) {
+  const p = (item.visual_prompt || '').trim();
+  if (p.includes('16:9') || p.includes('1920')) return p;
+  return `${FRAME_SIZE_HINT}\n\n${p}`;
+}
+
+function saveActivePromptDraft() {
+  if (activeBeatLine == null) return;
+  const card = $('active-beat-panel')?.querySelector('.single-beat-card');
+  if (!card || card.dataset.line !== String(activeBeatLine)) return;
+  const ta = $('active-beat-panel')?.querySelector('.prompt-edit');
+  if (ta) promptDrafts[String(activeBeatLine)] = ta.value;
+}
+
+function setActiveBeat(lineNumber) {
+  saveActivePromptDraft();
+  activeBeatLine = lineNumber;
+  const scriptForVo = lastVoiceoverScript || $('voiceover').value.trim();
+  renderScriptHighlights(scriptForVo, beatItemsCache);
+  updateBeatStripStates();
+  const item = beatItemsCache.find(b => String(b.line_number) === String(lineNumber));
+  if (item) renderActiveBeatPanel(item);
+}
+
+function renderActiveBeatPanel(item) {
+  const panel = $('active-beat-panel');
+  if (!panel || !item) return;
+  const lineKey = String(item.line_number);
+  const hasImage = lineKey in generatedImages;
+  const generating = isBeatGenerating(item.line_number);
+  saveActivePromptDraft();
+  const draft = promptDrafts[lineKey];
+  const promptText = (draft && draft.trim()) ? draft : defaultPromptText(item);
+
+  let imageBlock;
+  if (hasImage) {
+    imageBlock = `<img class="generated-img line-img" src="/image/${item.line_number}?t=${Date.now()}" alt="" />`;
+  } else if (generating) {
+    imageBlock = '<div class="img-placeholder generating-state"><span class="spinner"></span><span>Generating…</span></div>';
+  } else {
+    imageBlock = '<div class="img-placeholder">No image yet — Generate below</div>';
+  }
+
+  const btnLabel = generating
+    ? '<span class="spinner"></span>Generating…'
+    : (hasImage ? 'Regenerate' : 'Generate image');
+
+  panel.innerHTML = `
+    <div class="single-beat-card" data-line="${lineKey}">
+      <div class="frame-label">${escHtml(beatLabel(item))}</div>
+      <div class="review-image-col">${imageBlock}</div>
+      <details class="prompt-details" open>
+        <summary>Image prompt — edit before generating</summary>
+        <textarea class="prompt-edit" rows="7" spellcheck="true">${escHtml(promptText)}</textarea>
+      </details>
+      <div class="btn-row">
+        <button type="button" class="btn-gen-line" ${generating ? 'disabled' : ''}>${btnLabel}</button>
+        ${hasImage && !generating ? `<a class="btn-dl secondary" href="/download/${item.line_number}" download>Download</a>` : ''}
+      </div>
+      <div class="gen-status-line"></div>
+    </div>`;
+  panel.querySelector('.btn-gen-line').addEventListener('click', () => {
+    if (!isBeatGenerating(item.line_number)) generateImageForBeat(item, panel);
+  });
+}
+
+async function generateImageForBeat(item, panelRoot) {
+  const lineKey = String(item.line_number);
+  if (generatingLines.has(lineKey)) return;
+
+  const root = panelRoot || null;
+  const promptEl = root?.querySelector('.prompt-edit');
+  let activePrompt = (promptEl?.value.trim()) || defaultPromptText(item);
+  if (!activePrompt.includes('16:9')) {
+    activePrompt = `${FRAME_SIZE_HINT}\n\n${activePrompt}`;
+  }
+  const isRegenerate = lineKey in generatedImages;
+  let genError = null;
+
+  generatingLines.add(lineKey);
+  updateBeatStripStates();
+  if (String(item.line_number) === String(activeBeatLine)) {
+    renderActiveBeatPanel(item);
+  } else if (root) {
+    const genBtn = root.querySelector('.btn-gen-line');
+    const statusEl = root.querySelector('.gen-status-line');
+    if (genBtn) {
+      genBtn.disabled = true;
+      genBtn.innerHTML = '<span class="spinner"></span>Generating…';
+    }
+    if (statusEl) statusEl.innerHTML = '';
+  }
+
+  try {
+    const res = await fetch('/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        line_number: item.line_number,
+        visual_prompt: activePrompt,
+        regenerate: isRegenerate,
+        graphic: item._graphic || null,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Image generation failed');
+
+    generatedImages[lineKey] = true;
+  } catch (err) {
+    genError = err;
+  } finally {
+    generatingLines.delete(lineKey);
+    updateBeatStripStates();
+    if (String(item.line_number) === String(activeBeatLine)) {
+      renderActiveBeatPanel(item);
+      if (genError) {
+        const errEl = $('active-beat-panel')?.querySelector('.gen-status-line');
+        if (errEl) errEl.innerHTML = `<div class="notice error">${escHtml(genError.message)}</div>`;
+      }
+    }
+  }
+}
+
+async function autoGenerateFirstImages(items, count) {
+  const jobs = [...items]
+    .sort((a, b) => a.line_number - b.line_number)
+    .slice(0, count)
+    .filter(item => {
+      const k = String(item.line_number);
+      return !(k in generatedImages) && !generatingLines.has(k);
+    });
+  if (!jobs.length) return;
+  const panelFor = (item) =>
+    String(item.line_number) === String(activeBeatLine) ? $('active-beat-panel') : null;
+  await generateImageForBeat(jobs[0], panelFor(jobs[0]));
+  await Promise.all(jobs.slice(1).map(item => generateImageForBeat(item, panelFor(item))));
+}
+
+// ── Step 4: Script highlights + beat cards ───────────────────────────────────
+async function renderStoryboardReview() {
+  const scriptForVo = lastVoiceoverScript || $('voiceover').value.trim();
+  const rows = storyboardData.filter(item => !item._skip_image);
+  if (!rows.length) {
+    $('script-highlight-view').innerHTML = '';
+    $('beat-strip').innerHTML = '';
+    $('active-beat-panel').innerHTML = '<div class="muted">No visual beats to illustrate.</div>';
+    return;
+  }
+
+  rows.forEach(item => {
+    item.voiceover = resolveGraphicVoiceover(item.voiceover, scriptForVo);
+  });
+  beatItemsCache = rows;
+  activeBeatLine = rows[0].line_number;
+  renderBeatStrip(rows);
+  renderScriptHighlights(scriptForVo, rows);
+  renderActiveBeatPanel(rows[0]);
+  updateViewAllFramesButton();
+  await autoGenerateFirstImages(rows, 3);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -844,6 +1963,8 @@ function show(id) {
 function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+loadThemes();
 </script>
 </body>
 </html>

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "zo-ipo-lf/storyboard.schema.json",
+  "title": "ZO IPO LF Storyboard",
+  "description": "Ordered storyboard: graphics[] appear on screen in array order, starting at G01. Presenter-only beats are included as shot=PRESENTER so timing is continuous.",
+  "type": "object",
+  "required": ["company", "ipo", "fps", "master_resolution", "graphics"],
+  "properties": {
+    "company": {
+      "type": "object",
+      "required": ["legal_name", "short_name", "name_treatment"],
+      "properties": {
+        "legal_name": { "type": "string", "examples": ["Jindal Supreme India Limited"] },
+        "short_name": { "type": "string", "examples": ["Jindal Supreme"] },
+        "name_treatment": { "enum": ["all_blue", "two_tone_blue_ink"], "description": "Pick one and use it in every graphic." },
+        "domain_motif": { "type": "string", "description": "Watermark/decor motif, e.g. gear, pipe, fabric, awning" }
+      }
+    },
+    "ipo": {
+      "type": "object",
+      "required": ["open_date", "close_date"],
+      "properties": {
+        "open_date": { "type": "string", "format": "date" },
+        "close_date": { "type": "string", "format": "date" },
+        "calendar_window": { "type": "array", "items": { "type": "string", "format": "date" }, "minItems": 7, "maxItems": 7 }
+      }
+    },
+    "fps": { "const": 25 },
+    "master_resolution": { "enum": ["1920x1080", "3840x2160"] },
+    "spelling": { "enum": ["en-IN"], "default": "en-IN" },
+    "graphics": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/graphic" }
+    }
+  },
+  "$defs": {
+    "graphic": {
+      "type": "object",
+      "required": ["id", "shot", "vo", "in_tc", "out_tc", "transition_in", "transition_out", "continuity_from"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^(G\\d{2}(\\.\\d+)?r?|P\\d{2})$", "description": "G01.. for graphics (G05.2 = build state, G06r = resumed), P01.. for presenter-only beats" },
+        "shot": { "enum": ["PRESENTER", "OST", "BOARD", "SPLIT", "CHAPTER"] },
+        "graphic_type": {
+          "enum": ["G-CH", "G-OST-TITLE", "G-SCENE", "G-OST-LIST", "G-OST-ICONCARDS", "G-OST-MAP", "G-MAP", "G-FLOW", "G-SEQ", "G-HUB", "G-CAROUSEL", "G-PIE", "G-DONUT", "G-BAR", "G-TIMELINE", "G-NUM", null]
+        },
+        "vo": { "type": "string", "description": "Exact VO words covered by this graphic" },
+        "in_tc": { "type": "string", "pattern": "^\\d{2}:\\d{2}:\\d{2}:\\d{2}$" },
+        "out_tc": { "type": "string", "pattern": "^\\d{2}:\\d{2}:\\d{2}:\\d{2}$" },
+        "footage_take": { "type": "string", "description": "A-roll take id for PRESENTER/OST/SPLIT" },
+        "hero": {
+          "type": ["object", "null"],
+          "properties": {
+            "asset_id": { "type": "string" },
+            "description": { "type": "string" },
+            "position_px": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "width_px": { "type": "number" },
+            "grounding": { "enum": ["ground_line_trees", "floor_shadow", "curved_hatched_floor", "sun_circle_blue", "sun_circle_amber", "none"] }
+          }
+        },
+        "build": {
+          "type": "array",
+          "description": "Ordered reveals; each triggered by a VO word",
+          "items": {
+            "type": "object",
+            "required": ["step", "trigger_word", "element", "animation"],
+            "properties": {
+              "step": { "type": "integer", "minimum": 1 },
+              "trigger_word": { "type": "string" },
+              "offset_frames": { "type": "integer", "minimum": 0, "maximum": 4 },
+              "element": { "type": "string" },
+              "animation": { "enum": ["type_on", "type_on_cursor", "pop", "drop", "scale_in", "slide_in_left", "slide_in_right", "draw_on", "wipe_cw", "fill_lr", "count_up", "morph", "fill_colour", "collapse_to_acronym", "ghost_to_side", "camera_zoom", "punch_in"] },
+              "duration_frames": { "type": "integer" }
+            }
+          }
+        },
+        "on_screen_text": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["text", "role"],
+            "properties": {
+              "text": { "type": "string" },
+              "role": { "enum": ["title", "suffix", "heading", "label", "number", "caption", "chip", "annotation", "list_item"] },
+              "colour_token": { "enum": ["--zo-blue", "--zo-ink", "--zo-deep-grey", "--zo-white", "--zo-sunshine", "--zo-chip"] },
+              "highlight_phrase": { "type": "string", "description": "Sub-string rendered in --zo-blue (mixed-colour heading)" },
+              "size_px": { "type": "number" },
+              "weight": { "enum": [400, 500, 600, 700] }
+            }
+          }
+        },
+        "data": {
+          "type": "object",
+          "description": "Chart/bar/number payload; values must match RHP",
+          "properties": {
+            "series": { "type": "array", "items": { "type": "object", "properties": { "label": { "type": "string" }, "value": { "type": "number" }, "unit": { "type": "string" }, "period": { "type": "string" } } } },
+            "must_sum_to": { "type": "number" }
+          }
+        },
+        "decor": { "type": "array", "items": { "enum": ["sparkle_amber", "sparkle_blue", "cloud_outline", "triangle_peach", "triangle_purple", "triangle_amber", "squiggle", "ring", "gear_watermark", "curved_arrow", "dashed_arrow", "corner_icon"] } },
+        "accent_dash": { "enum": ["green", "amber", "none"] },
+        "source_line": { "type": "boolean" },
+        "sebi_disclaimer": { "type": "boolean" },
+        "transition_in": { "enum": ["cut", "board_wipe_down", "card_zoom_reveal", "push_left", "match_cut_zoom", "punch_in", "none"] },
+        "transition_out": { "enum": ["cut", "board_wipe_down", "card_zoom_reveal", "push_left", "match_cut_zoom", "scale_down_blur", "slide_left_blur", "none"] },
+        "continuity_from": { "enum": ["new", "same_hero", "resume", "match_cut"] },
+        "assets_to_create": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["asset_id", "kind", "spec"],
+            "properties": {
+              "asset_id": { "type": "string" },
+              "kind": { "enum": ["illustration", "map", "icon", "photo_cutout", "chart", "ui"] },
+              "spec": { "type": "string", "description": "Prompt (see 02 §5 template) or vector spec" }
+            }
+          }
+        },
+        "qc_flags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
